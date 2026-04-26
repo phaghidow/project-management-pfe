@@ -1,0 +1,101 @@
+@extends('layouts.app')
+
+@section('title', 'Créer Utilisateur')
+
+@section('content')
+<div class="p-6 max-w-2xl mx-auto">
+    <div class="flex items-center mb-8">
+        <a href="{{ route('admin.users.index') }}" class="text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+        </a>
+        <h1 class="text-3xl font-bold text-gray-900 ml-4">Nouveau Utilisateur</h1>
+    </div>
+
+    <form method="POST" action="{{ route('admin.users.store') }}" class="bg-white shadow-xl rounded-2xl p-8">
+        @csrf
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <x-input-label for="name" :value="'Nom complet'" />
+                <x-text-input id="name" name="name" :value="old('name')" required autofocus />
+                <x-input-error :messages="$errors->get('name')" class="mt-2" />
+            </div>
+
+            <div>
+                <x-input-label for="username" :value="'Username'" />
+                <x-text-input id="username" name="username" :value="old('username')" required />
+                <x-input-error :messages="$errors->get('username')" class="mt-2" />
+            </div>
+
+            <div class="md:col-span-2">
+                <x-input-label for="email" :value="'Email professionnel'" />
+                <x-text-input id="email" name="email" type="email" :value="old('email')" required />
+                <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                <p class="text-xs text-gray-500 mt-1">Format: username@at.dz ou username@algerietelecom.dz</p>
+            </div>
+
+            <div>
+                <x-input-label for="password" :value="'Mot de passe'" />
+                <x-text-input id="password" name="password" type="password" required />
+                <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            </div>
+
+            <div>
+                <x-input-label for="password_confirmation" :value="'Confirmer mot de passe'" />
+                <x-text-input id="password_confirmation" name="password_confirmation" type="password" />
+            </div>
+
+            <div>
+                <x-input-label for="role" :value="'Rôle'" />
+                <select name="role" id="role" class="w-full border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                    <option value="">Sélectionner rôle</option>
+                    <option value="{{ \App\Models\User::ROLE_ADMIN }}" {{ old('role') === \App\Models\User::ROLE_ADMIN ? 'selected' : '' }}>Administrateur</option>
+                    <option value="{{ \App\Models\User::ROLE_CHEF_DEPT }}" {{ old('role') === \App\Models\User::ROLE_CHEF_DEPT ? 'selected' : '' }}>Chef de Dept</option>
+                    <option value="{{ \App\Models\User::ROLE_CHEF_DEPARTEMENT }}" {{ old('role') === \App\Models\User::ROLE_CHEF_DEPARTEMENT ? 'selected' : '' }}>Chef Département</option>
+                    <option value="{{ \App\Models\User::ROLE_CHEF_PROJET }}" {{ old('role') === \App\Models\User::ROLE_CHEF_PROJET ? 'selected' : '' }}>Chef Projet</option>
+                    <option value="{{ \App\Models\User::ROLE_MEMBRE }}" {{ old('role') === \App\Models\User::ROLE_MEMBRE ? 'selected' : '' }}>Membre</option>
+                </select>
+                <x-input-error :messages="$errors->get('role')" class="mt-2" />
+            </div>
+
+            <div>
+                <x-input-label for="structure_id" :value="'Structure'" />
+                <select name="structure_id" id="structure_id" class="w-full border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                    <option value="">Aucune structure</option>
+                    @foreach($structures as $structure)
+                    <option value="{{ $structure->id }}" {{ old('structure_id') == $structure->id ? 'selected' : '' }}>
+                        {{ $structure->hierarchy_path }}
+                    </option>
+                    @endforeach
+                </select>
+                <x-input-error :messages="$errors->get('structure_id')" class="mt-2" />
+            </div>
+
+            <div class="md:col-span-2">
+                <x-input-label class="flex items-center">
+                    <input type="radio" name="status" value="en_attente" id="status_en_attente" {{ old('status', 'en_attente') === 'en_attente' ? 'checked' : '' }} class="mr-2">
+                    <label for="status_en_attente" class="text-sm font-medium text-gray-700">En attente (nécessite activation)</label>
+                </x-input-label>
+                <x-input-label class="flex items-center mt-2">
+                    <input type="radio" name="status" value="active" id="status_active" {{ old('status') === 'active' ? 'checked' : '' }} class="mr-2">
+                    <label for="status_active" class="text-sm font-medium text-gray-700">Actif immédiatement</label>
+                </x-input-label>
+                <x-input-label class="flex items-center mt-2">
+                    <input type="radio" name="status" value="disabled" id="status_disabled" {{ old('status') === 'disabled' ? 'checked' : '' }} class="mr-2">
+                    <label for="status_disabled" class="text-sm font-medium text-gray-700">Désactivé</label>
+                </x-input-label>
+                <x-input-error :messages="$errors->get('status')" class="mt-2" />
+            </div>
+
+        <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
+            <a href="{{ route('admin.users.index') }}" class="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                Annuler
+            </a>
+            <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-lg shadow hover:bg-blue-700 transition">
+                Créer utilisateur
+            </button>
+        </div>
+    </form>
+</div>
+@endsection

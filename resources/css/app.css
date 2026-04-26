@@ -1,0 +1,222 @@
+@import "tailwindcss";
+
+@layer components {
+    .toast-enter-active {
+        transition: all 0.3s ease-out;
+    }
+    .toast-enter-from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    .toast-enter-to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    .toast-leave-active {
+        transition: all 0.2s ease-in;
+    }
+    .toast-leave-from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    .toast-leave-to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    .page-mobile {
+        padding: 1rem;
+    }
+
+    .responsive-form {
+        width: 100%;
+        max-width: none;
+    }
+
+    .responsive-form-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1rem;
+    }
+
+    .responsive-form-actions {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 0.75rem;
+    }
+
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .responsive-table {
+        min-width: 45rem;
+    }
+
+    .chart-wrap {
+        position: relative;
+        width: 100%;
+        height: 16rem;
+    }
+
+    .responsive-chart {
+        max-width: 100%;
+        height: auto;
+    }
+}
+
+@media (max-width: 767px) {
+    .mobile-stack > * {
+        width: 100%;
+    }
+
+    .mobile-tight {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+@media (min-width: 640px) {
+    .page-mobile {
+        padding: 1.5rem;
+    }
+
+    .responsive-form-actions {
+        flex-direction: row;
+        justify-content: flex-end;
+    }
+}
+
+@media (min-width: 768px) {
+    .responsive-form-grid {
+        gap: 1.5rem;
+    }
+
+    .responsive-table {
+        min-width: 100%;
+    }
+}
+
+.organigramme-tree {
+    --tree-node-bg: theme('colors.white');
+    --tree-line-color: theme('colors.gray.300');
+    --tree-border-color: theme('colors.gray.200');
+}
+
+.organigramme-tree {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.organigramme-tree ul {
+    position: relative;
+    padding-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.organigramme-tree li {
+    list-style: none;
+    text-align: center;
+    position: relative;
+    padding: 20px 10px 0 10px;
+}
+
+/* Lignes verticales */
+.organigramme-tree li::before,
+.organigramme-tree li::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 50%;
+    border-top: 1px solid var(--tree-line-color);
+    width: 50%;
+    height: 20px;
+}
+
+.organigramme-tree li::after {
+    right: auto;
+    left: 50%;
+    border-left: 1px solid var(--tree-line-color);
+}
+
+/* pas de ligne si un seul enfant */
+.organigramme-tree li:only-child::after,
+.organigramme-tree li:only-child::before {
+    display: none;
+}
+
+.organigramme-tree .node-box {
+    display: inline-block;
+    padding: 10px 15px;
+    border: 1px solid var(--tree-border-color);
+    border-radius: 8px;
+    background: var(--tree-node-bg);
+    font-weight: 500;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.organigramme-tree .tree-children {
+    display: flex;
+    justify-content: center;
+    padding-top: 20px;
+}
+
+.organigramme-tree ul {
+    list-style: none;
+}
+
+.organigramme-tree ul.flex > li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: -12px;
+    right: -20px;
+    width: 40px;
+    height: 2px;
+    background: var(--tree-line-color);
+}
+
+.organigramme-tree li {
+    position: relative;
+}
+
+.organigramme-tree ul.flex > li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: -20px;
+    width: 40px;
+    height: 2px;
+    background: var(--tree-line-color);
+}
+
+.structures-tree {
+    --tree-node-bg: theme('colors.white');
+    --tree-line-color: theme('colors.gray.400');
+}
+
+.structures-tree li {
+    list-style: none;
+    @apply relative flex flex-col items-center mb-8;
+}
+
+.structures-tree .node-box {
+    @apply bg-white border shadow-md rounded-lg px-4 py-2 min-w-37.5 text-center hover:shadow-lg transition;
+}
+
+.structures-tree .vertical-connector {
+    @apply w-px h-6 bg-gray-300;
+}
+
+.structures-tree ul {
+    @apply flex gap-8 pt-4 relative;
+}
+
+.dropdown {
+    z-index: 999 !important;
+}
+
+.header-dropdown {
+    z-index: 999;
+}
