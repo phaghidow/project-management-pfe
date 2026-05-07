@@ -18,7 +18,8 @@ class NotificationService
         $type,
         $relatedType = null,
         $relatedId = null,
-        $metadata = []
+        $metadata = [],
+        $delaySeconds = null
     ) {
         // Anti-duplication: Skip if similar notification sent recently and unacknowledged
         $recentExists = Notification::where('user_id', $userId)
@@ -44,8 +45,12 @@ class NotificationService
                 'sent_at' => now(),
             ]);
 
-            // Dispatch real-time event
-            NewNotification::dispatch($notification);
+            // Dispatch real-time event (queueable). If $delaySeconds provided, delay dispatch.
+            if ($delaySeconds) {
+                NewNotification::dispatch($notification)->delay(now()->addSeconds($delaySeconds));
+            } else {
+                NewNotification::dispatch($notification);
+            }
 
             return $notification;
         } catch (\Illuminate\Database\QueryException $e) {
@@ -55,8 +60,105 @@ class NotificationService
 }
 
     /**
-     * Send deadline alert for task (with dedup)
+     * Send the same notification payload to a collection of users.
      */
+    public static function sendToUsers(
+        iterable $users,
+        string $title,
+        string $message,
+        string $type,
+        $relatedType = null,
+        $relatedId = null,
+        array $metadata = [],
+        $delaySeconds = null
+    ): int {
+        $sent = 0;
+
+        foreach ($users as $user) {
+            $userId = $user instanceof User ? $user->id : (int) $user;
+            $notification = self::send(
+                $userId,
+                $title,
+                $message,
+                $type,
+                $relatedType,
+                $relatedId,
+                $metadata,
+                $delaySeconds
+            );
+
+            if ($notification) {
+                $sent++;
+            }
+        }
+
+        return $sent;
+    }
+
+    /**
+     * Send a role-level notification (communication between roles).
+     */
+    public static function sendToRole(
+        string $role,
+        string $title,
+        string $message,
+        string $type,
+        $relatedType = null,
+        $relatedId = null,
+        array $metadata = [],
+        $excludeUserId = null,
+        $delaySeconds = null
+    ): int {
+        $usersQuery = User::query()->where('role', $role)->where('status', User::STATUS_ACTIVE);
+
+        if ($excludeUserId) {
+            $usersQuery->where('id', '!=', $excludeUserId);
+        }
+
+        return self::sendToUsers(
+            $usersQuery->cursor(),
+            $title,
+            $message,
+            $type,
+            $relatedType,
+            $relatedId,
+            $metadata,
+            $delaySeconds
+        );
+    }
+
+    /**
+     * Send a structure-level notification (department communication).
+     */
+    public static function sendToStructure(
+        int $structureId,
+        string $title,
+        string $message,
+        string $type,
+        $relatedType = null,
+        $relatedId = null,
+        array $metadata = [],
+        $excludeUserId = null,
+        $delaySeconds = null
+    ): int {
+        $usersQuery = User::query()->where('structure_id', $structureId)->where('status', User::STATUS_ACTIVE);
+
+        if ($excludeUserId) {
+            $usersQuery->where('id', '!=', $excludeUserId);
+        }
+
+        return self::sendToUsers(
+            $usersQuery->cursor(),
+            $title,
+            $message,
+            $type,
+            $relatedType,
+            $relatedId,
+            $metadata,
+            $delaySeconds
+        );
+    }
+
     /**
      * Send deadline alert for task (with dedup)
      */

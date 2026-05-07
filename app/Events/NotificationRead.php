@@ -7,12 +7,29 @@ use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 
-class NotificationRead implements ShouldBroadcast
+class NotificationRead implements ShouldBroadcast, ShouldQueue
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Queueable;
+
+    /**
+     * Number of times the job should be attempted.
+     *
+     * @var int
+     */
+    public $tries = 3;
+
+    /**
+     * Backoff in seconds before retrying.
+     *
+     * @var int
+     */
+    public $backoff = 60;
 
     public $notificationId;
     public $userId;

@@ -30,11 +30,11 @@
                 <div class="space-y-4">
                     <form method="POST" action="{{ route('admin.users.toggle', $user) }}" class="text-center" onsubmit="return confirm('Voulez-vous {{ $user->isActive() ? 'désactiver' : 'activer' }} cet utilisateur ?');">
                         @csrf
-                        <button type="submit" class="w-full bg-{{ $user->isActive() ? 'red' : 'green' }}-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-{{ $user->isActive() ? 'red' : 'green' }}-700 transition shadow-lg">
+                        <button type="submit" class="inline-flex items-center justify-center w-full bg-{{ $user->isActive() ? 'red' : 'green' }}-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-{{ $user->isActive() ? 'red' : 'green' }}-700 focus:bg-{{ $user->isActive() ? 'red' : 'green' }}-700 active:bg-{{ $user->isActive() ? 'red' : 'green' }}-800 transition shadow-lg !text-white">
                             {{ $user->isActive() ? 'Désactiver l\'utilisateur' : 'Activer l\'utilisateur' }}
                         </button>
                     </form>
-                    <a href="{{ route('admin.users.edit', $user) }}" class="w-full block bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 transition shadow-lg text-center">
+                        <a href="{{ route('admin.users.edit', $user) }}" class="inline-flex items-center justify-center w-full bg-primary-500 text-white py-3 px-6 rounded-xl font-semibold hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 transition shadow-lg text-center !text-white">
                         Modifier les détails
                     </a>
                 </div>

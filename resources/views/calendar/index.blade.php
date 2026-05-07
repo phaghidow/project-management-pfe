@@ -9,10 +9,7 @@
             <p class="text-lg text-gray-600 mt-1">Tâches et jalons - Vue mensuelle/semaine/jour</p>
         </div>
         <div class="flex flex-col sm:flex-row gap-3">
-            <button id="todayBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium shadow-lg transition-all">
-                Aujourd'hui
-            </button>
-            <a href="/gantt" class="bg-linear-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-6 py-3 rounded-xl font-medium shadow-lg transition-all">
+            <a href="/gantt" class="btn-primary">
                 🎯 Gantt
             </a>
         </div>
@@ -67,7 +64,7 @@
                 </div>
 
                 <div class="flex justify-end">
-                    <button type="submit" class="bg-indigo-600 text-white px-5 py-3 rounded-lg hover:bg-indigo-700">Créer</button>
+                    <button type="submit" class="inline-flex items-center justify-center bg-primary-500 text-white px-5 py-3 rounded-lg hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 transition !text-white">Créer</button>
                 </div>
             </form>
         </div>
@@ -102,11 +99,11 @@
                         @endif
 
                         <div class="flex flex-wrap gap-2 justify-end">
-                            <a href="{{ route('calendar.manual-events.edit', $event) }}" class="text-sm bg-white border border-gray-300 px-3 py-2 rounded hover:bg-gray-50">Modifier</a>
+                            <a href="{{ route('calendar.manual-events.edit', $event) }}" class="inline-flex items-center justify-center text-sm bg-white border border-gray-300 px-3 py-2 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition">Modifier</a>
                             <form method="POST" action="{{ route('calendar.manual-events.destroy', $event) }}" onsubmit="return confirm('Supprimer cet événement ?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-sm bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700">Supprimer</button>
+                                <button type="submit" class="inline-flex items-center justify-center text-sm bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 focus:bg-red-700 active:bg-red-800 transition !text-white">Supprimer</button>
                             </form>
                         </div>
                     </div>
@@ -119,6 +116,11 @@
 </div>
 
 @vite(['resources/js/calendar-mount.js'])
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/core/main.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid/main.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid/main.min.css">
+@endpush
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', () => {

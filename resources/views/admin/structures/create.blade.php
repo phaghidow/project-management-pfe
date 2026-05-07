@@ -61,11 +61,11 @@
             </div>
         </div>
 
-        <div class="flex justify-end gap-4 mt-8 pt-6 border-t border-gray-200">
-            <a href="{{ route('admin.structures.index') }}" class="px-6 py-3 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+        <div class="flex flex-col-reverse gap-4 mt-8 pt-6 border-t border-[#E2E8F0] sm:flex-row sm:justify-end">
+            <a href="{{ route('admin.structures.index') }}" class="inline-flex items-center justify-center px-6 py-3 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
                 Annuler
             </a>
-            <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-lg shadow hover:bg-blue-700 transition">
+            <button type="submit" class="inline-flex items-center justify-center px-8 py-3 rounded-lg bg-primary-500 text-white shadow hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 transition !text-white">
                 Créer Structure
             </button>
         </div>

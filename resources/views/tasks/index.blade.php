@@ -10,7 +10,6 @@
                 'label' => 'Statut',
                 'type' => 'select',
                 'values' => [
-                    'pending' => 'En attente',
                     'in_progress' => 'En cours',
                     'validated' => 'Validée',
                 ]
@@ -21,8 +20,8 @@
     <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-4 mt-6">
         <h1 class="text-xl font-bold">Tâches</h1>
 
-        <a href="{{ route('tasks.create') }}"
-           class="bg-primary-500 text-white px-4 py-2 rounded">
+          <a href="{{ route('tasks.create') }}"
+              class="bg-[#2E3192] hover:bg-[#1E216D] text-white px-4 py-2 rounded font-semibold transition-colors shadow-sm">
             + Nouvelle tâche
         </a>
     </div>
@@ -58,13 +57,7 @@
                 </div>
 
                 <div class="mt-3 flex gap-2">
-                    @if($task->status === 'pending' || $task->status === 'in_progress')
-                        <form method="POST" action="{{ route('tasks.start', $task) }}" class="inline-block">
-                            @csrf
-                            <button type="submit" onclick="return confirm('Démarrer cette tâche ? (Dépendances doivent être terminées)');"
-                                    class="px-3 py-1 rounded bg-primary-600 hover:bg-primary-700 text-white text-xs font-medium transition-colors">🚀 Démarrer</button>
-                        </form>
-
+                    @if($task->status === 'in_progress')
                         <form method="POST" action="{{ route('tasks.validate', $task) }}" class="inline-block">
                             @csrf
                             <button type="submit" onclick="return confirm('Valider définitivement cette tâche ? Action irréversible.');"

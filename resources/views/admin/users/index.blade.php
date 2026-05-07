@@ -9,51 +9,74 @@
             <h1 class="text-3xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
             <p class="text-gray-600 mt-1">{{ $users->total() }} utilisateurs</p>
         </div>
-        <a href="{{ route('admin.users.create') }}" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg shadow hover:bg-blue-700 transition">
+        <a href="{{ route('admin.users.create') }}" class="btn-primary">
             + Nouvel utilisateur
         </a>
     </div>
 
     {{-- Filters --}}
-    <form method="GET" class="bg-white p-6 rounded-xl shadow border mb-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+    <form method="GET" class="bg-white p-6 rounded-xl shadow border mb-8 overflow-hidden">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Recherche</label>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Nom, username, email..." class="w-full border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
+                <label for="search" class="block text-sm font-medium text-gray-700 mb-2">Recherche</label>
+                <input id="search" type="text" name="search" value="{{ request('search') }}" placeholder="Nom, username, email..." class="w-full min-w-0 border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
             </div>
+
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Rôle</label>
-                <select name="role" class="w-full border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
+                <label for="role" class="block text-sm font-medium text-gray-700 mb-2">Rôle</label>
+                <select id="role" name="role" class="w-full min-w-0 border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
                     <option value="">Tous les rôles</option>
                     @foreach($roles as $role)
                         <option value="{{ $role }}" {{ request('role') === $role ? 'selected' : '' }}>{{ ucfirst(str_replace('_', ' ', $role)) }}</option>
                     @endforeach
                 </select>
             </div>
+
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Structure</label>
-                <select name="structure_id" class="w-full border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
+                <label for="structure_id" class="block text-sm font-medium text-gray-700 mb-2">Structure</label>
+                <select
+                    id="structure_id"
+                    name="structure_id"
+                    class="w-full min-w-0 border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500"
+                    data-tree-select="structures"
+                    data-placeholder="Rechercher une structure..."
+                >
                     <option value="">Toutes structures</option>
                     @foreach($structures as $structure)
-                        <option value="{{ $structure->id }}" {{ request('structure_id') == $structure->id ? 'selected' : '' }}>
+                        <option
+                            value="{{ $structure->id }}"
+                            data-level="{{ (int) ($structure->level ?? 0) }}"
+                            data-name="{{ $structure->name }}"
+                            data-path="{{ str_replace(' > ', ' / ', $structure->hierarchy_path) }}"
+                            {{ request('structure_id') == $structure->id ? 'selected' : '' }}
+                        >
                             {{ $structure->hierarchy_path }}
                         </option>
                     @endforeach
                 </select>
             </div>
-            <div class="flex gap-2">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
-                <select name="status" class="flex-1 border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
+
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Statut</label>
+                <select id="status" name="status" class="w-full min-w-0 border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500">
                     <option value="">Tous statuts</option>
                     <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Actif</option>
                     <option value="en_attente" {{ request('status') === 'en_attente' ? 'selected' : '' }}>En attente</option>
                     <option value="disabled" {{ request('status') === 'disabled' ? 'selected' : '' }}>Désactivé</option>
                 </select>
-                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Filtrer</button>
+            </div>
+
+            <div class="md:col-span-4 flex flex-col sm:flex-row gap-2 sm:justify-end">
+                <button type="submit" class="inline-flex items-center justify-center bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 transition w-full sm:w-auto !text-white">
+                    Filtrer
+                </button>
                 @if(request()->hasAny(['search', 'role', 'structure_id', 'status']))
-                    <a href="{{ route('admin.users.index') }}" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600">Effacer</a>
+                    <a href="{{ route('admin.users.index') }}" class="btn-light text-center w-full sm:w-auto">
+                        Effacer
+                    </a>
                 @endif
             </div>
+        </div>
     </form>
 
     {{-- Users Table --}}
@@ -64,6 +87,7 @@
                     <tr>
                         <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">ID</th>
                         <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
+                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fonction</th>
                         <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
                         <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                         <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rôle</th>
@@ -79,7 +103,11 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $user->id }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900">{{ $user->name }}</div>
+                            @if($user->function)
+                                <div class="text-xs text-gray-500 mt-0.5">{{ $user->function }}</div>
+                            @endif
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $user->function ?? 'Non renseignée' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $user->username }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $user->email }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -113,7 +141,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="px-6 py-12 text-center text-gray-500">
+                        <td colspan="10" class="px-6 py-12 text-center text-gray-500">
                             Aucun utilisateur trouvé. <a href="{{ route('admin.users.create') }}" class="text-blue-600 hover:underline">Créer le premier</a>
                         </td>
                     </tr>
@@ -121,8 +149,8 @@
                 </tbody>
             </table>
         </div>
-        <div class="px-6 py-4 bg-gray-50">
-            {{ $users->appends(request()->query())->links() }}
-        </div>
+    <div class="px-6 py-4 bg-gray-50">
+        {{ $users->appends(request()->query())->links() }}
+    </div>
 </div>
 @endsection

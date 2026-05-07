@@ -38,19 +38,23 @@ class Notification extends Model
     }
 
     /**
-     * Scope: Unread or unacknowledged notifications
+     * Scope: Unread notifications
      */
     public function scopeUnread($query)
     {
-        return $query->where(function ($q) {
-            $q->whereNull('read_at')
-              ->orWhereNull('acknowledged_at');
-        });
+        return $query->whereNull('read_at');
     }
 
     public function markAsRead()
     {
-        $this->update(['read_at' => now()]);
+        $now = now();
+
+        $this->update([
+            'is_read' => true,
+            'read_at' => $now,
+            // When a user reads a notification, we also acknowledge it for dedup logic.
+            'acknowledged_at' => $this->acknowledged_at ?? $now,
+        ]);
     }
 
     /**

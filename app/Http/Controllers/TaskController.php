@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\Task\TaskAssigned;
+use App\Events\Task\TaskStatusChanged;
 use App\Http\Controllers\Controller;
 use App\Models\Task;
 use App\Models\User;
@@ -189,20 +191,16 @@ class TaskController extends Controller
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'due_date' => $request->due_date,
-            'status' => 'pending',
+            'status' => 'in_progress',
         ]);
 
-        // assign users and send notifications
+        // assign users and dispatch task assigned events
         if ($request->users) {
             $task->users()->attach($request->users);
 
             foreach ($request->users as $userId) {
-                \App\Services\NotificationService::send(
-                    $userId,
-                    "Nouvelle tâche assignée",
-                    "Vous avez été assigné à la tâche : {$task->name}",
-                    "task_assigned"
-                );
+                $user = User::find($userId);
+                TaskAssigned::dispatch($task, $user, auth()->user());
             }
         }
 
@@ -211,8 +209,14 @@ class TaskController extends Controller
             $task->updateProjectEnd();
         }
 
+        $message = 'Tâche créée et intervenants notifiés';
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'task' => $task, 'message' => $message])
+                ->header('X-Flash-Success', $message);
+        }
+
         return redirect()->route('tasks.index')
-            ->with('success', 'Tâche créée et intervenants notifiés');
+            ->with('success', $message);
     }
 
     /**
@@ -220,7 +224,7 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-$task->load('users', 'milestone.project', 'dependencies', 'dependents', 'attachments.user', 'statusHistory.actor', 'auditLogs.actor');
+        $task->load('users', 'milestone.project', 'dependencies', 'dependents', 'attachments.user', 'statusHistory.actor', 'auditLogs.actor');
 
         return view('tasks.show', compact('task'));
     }
@@ -253,10 +257,13 @@ $task->load('users', 'milestone.project', 'dependencies', 'dependents', 'attachm
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
             'due_date' => 'nullable|date',
-            'status' => 'nullable|in:pending,in_progress,validated',
+            'status' => 'nullable|in:in_progress,validated',
             'users' => 'nullable|array',
             'users.*' => 'exists:users,id',
         ]);
+
+        $oldStatus = $task->status;
+        $newStatus = $request->status ?? 'in_progress';
 
         $task->update([
             'name' => $request->name,
@@ -264,33 +271,39 @@ $task->load('users', 'milestone.project', 'dependencies', 'dependents', 'attachm
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'due_date' => $request->due_date,
-            'status' => $request->status ?? 'pending',
+            'status' => $newStatus,
         ]);
 
-        $task->users()->sync($request->users ?? []);
+        // Handle user assignments and dispatch events
+        $previousUserIds = $task->users()->pluck('users.id')->toArray();
+        $newUserIds = $request->users ?? [];
+        $task->users()->sync($newUserIds);
+
+        // Dispatch events for newly assigned users
+        $newlyAssigned = array_diff($newUserIds, $previousUserIds);
+        foreach ($newlyAssigned as $userId) {
+            $user = User::find($userId);
+            TaskAssigned::dispatch($task, $user, auth()->user());
+        }
+
+        // Dispatch status change event if status changed
+        if ($oldStatus !== $newStatus) {
+            TaskStatusChanged::dispatch($task, $oldStatus, $newStatus, auth()->user());
+        }
 
         // Recalculate project end_date (boot handles, explicit for clarity)
         if ($task->milestone?->project) {
             $task->updateProjectEnd();
         }
 
-        return redirect()->route('tasks.index')
-            ->with('success', 'Tâche mise à jour');
-    }
-
-    public function start(Task $task)
-    {
-        $this->authorize('start', $task);
-
-        try {
-            $task->start();
-        } catch (\Exception $exception) {
-            return redirect()->route('tasks.index')
-                ->with('error', $exception->getMessage());
+        $message = 'Tâche mise à jour';
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'task' => $task, 'message' => $message])
+                ->header('X-Flash-Success', $message);
         }
 
         return redirect()->route('tasks.index')
-            ->with('success', 'Tache demarree.');
+            ->with('success', $message);
     }
 
     public function validateTask(Task $task)
@@ -298,8 +311,23 @@ $task->load('users', 'milestone.project', 'dependencies', 'dependents', 'attachm
         $this->authorize('validateTask', $task);
 
         try {
+            $oldStatus = $task->status;
             $task->validateTask(auth()->id());
+            
+            // Dispatch event for status change to validated
+            TaskStatusChanged::dispatch($task, $oldStatus, 'validated', auth()->user());
+
+            // Return JSON for AJAX requests, redirect for page requests
+            $message = 'Tâche validée avec succès';
+            if (request()->expectsJson()) {
+                return response()->json(['success' => true, 'message' => $message])
+                    ->header('X-Flash-Success', $message);
+            }
         } catch (\Exception $exception) {
+            if (request()->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $exception->getMessage()], 400)
+                    ->header('X-Flash-Error', $exception->getMessage());
+            }
             return redirect()->route('tasks.index')
                 ->with('error', $exception->getMessage());
         }
@@ -319,8 +347,17 @@ $task->load('users', 'milestone.project', 'dependencies', 'dependents', 'attachm
         try {
             $dependency = Task::findOrFail($request->dependency_id);
             $task->addDependency($dependency);
-            return redirect()->back()->with('success', 'Dépendance ajoutée.');
+            $message = 'Dépendance ajoutée.';
+            if (request()->expectsJson()) {
+                return response()->json(['success' => true, 'message' => $message])
+                    ->header('X-Flash-Success', $message);
+            }
+            return redirect()->back()->with('success', $message);
         } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 400)
+                    ->header('X-Flash-Error', $e->getMessage());
+            }
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
@@ -331,8 +368,17 @@ $task->load('users', 'milestone.project', 'dependencies', 'dependents', 'attachm
 
         try {
             $task->removeDependency($dependency);
-            return redirect()->back()->with('success', 'Dépendance supprimée.');
+            $message = 'Dépendance supprimée.';
+            if (request()->expectsJson()) {
+                return response()->json(['success' => true, 'message' => $message])
+                    ->header('X-Flash-Success', $message);
+            }
+            return redirect()->back()->with('success', $message);
         } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 400)
+                    ->header('X-Flash-Error', $e->getMessage());
+            }
             return redirect()->back()->with('error', $e->getMessage());
         }
     }
@@ -343,8 +389,13 @@ $task->load('users', 'milestone.project', 'dependencies', 'dependents', 'attachm
     public function destroy(Task $task)
     {
         $task->delete();
+        $message = 'Tâche supprimée';
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'message' => $message])
+                ->header('X-Flash-Success', $message);
+        }
 
         return redirect()->route('tasks.index')
-            ->with('success', 'Tâche supprimée');
+            ->with('success', $message);
     }
 }

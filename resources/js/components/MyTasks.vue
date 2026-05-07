@@ -8,8 +8,10 @@
       <div class="flex flex-col sm:flex-row gap-4 sm:items-end">
         <!-- Search -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Recherche</label>
+          <label for="filter-q" class="block text-sm font-medium text-gray-700 mb-1">Recherche</label>
           <input
+            id="filter-q"
+            name="q"
             v-model="filters.q"
             @keyup.enter="fetchTasks"
             type="text"
@@ -20,8 +22,8 @@
 
         <!-- Status filter -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-          <select v-model="filters.status" @change="fetchTasks" class="w-full max-w-xs border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+          <label for="filter-status" class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
+          <select id="filter-status" name="status" v-model="filters.status" @change="fetchTasks" class="w-full max-w-xs border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
             <option value="all">Toutes</option>
             <option value="pending">En attente</option>
             <option value="in_progress">En cours</option>
@@ -31,8 +33,8 @@
         
         <!-- Project filter -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Projet</label>
-          <select v-model="filters.project_id" @change="fetchTasks" class="w-full max-w-xs border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+          <label for="filter-project" class="block text-sm font-medium text-gray-700 mb-1">Projet</label>
+          <select id="filter-project" name="project_id" v-model="filters.project_id" @change="fetchTasks" class="w-full max-w-xs border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
             <option value="">Tous les projets</option>
             <option v-for="project in uniqueProjects" :key="project.id" :value="project.id">
               {{ project.name }}
@@ -56,6 +58,9 @@
 
     <!-- Tasks Table -->
     <div v-if="loading" class="text-center py-12 text-gray-500">Chargement...</div>
+    <div v-else-if="loadError" class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      {{ loadError }}
+    </div>
     
     <div v-else-if="tasks.data.length > 0" class="bg-white shadow overflow-hidden sm:rounded-md">
       <div class="table-responsive">
@@ -66,16 +71,19 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Projet</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Échéance</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignés</th>
+              <th v-if="props.userRole !== 'membre'" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignés</th>
               <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <tr v-for="task in tasks.data" :key="task.id" :class="{ 'opacity-60': task.status === 'validated' }">
               <td class="px-6 py-4 whitespace-nowrap">
-                <a :href="`/tasks/${task.id}`" class="text-sm font-medium text-indigo-600 hover:text-indigo-900">
+                <button
+                  @click="selectedTask = task; isDrawerOpen = true"
+                  class="text-sm font-medium text-indigo-600 hover:text-indigo-900 hover:underline cursor-pointer text-left"
+                >
                   {{ task.name }}
-                </a>
+                </button>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="text-sm text-gray-900">{{ task.milestone?.project?.name || '-' }}</div>
@@ -89,11 +97,11 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {{ formatDate(task.due_date) }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <span v-for="(user, index) in task.users.slice(0,2)" :key="user.id">
-                  {{ user.name }}{{ index < 1 && task.users.length > 1 ? ', ' : '' }}
+              <td v-if="props.userRole !== 'membre'" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <span v-for="(user, index) in (task.users || []).slice(0,2)" :key="user.id">
+                  {{ user.name }}{{ index < 1 && (task.users || []).length > 1 ? ', ' : '' }}
                 </span>
-                <span v-if="task.users.length > 2"> +{{ task.users.length - 2 }} autres</span>
+                <span v-if="(task.users || []).length > 2"> +{{ (task.users || []).length - 2 }} autres</span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <form v-if="task.status === 'in_progress'" @submit.prevent="validateTask(task)" class="inline">
@@ -164,21 +172,35 @@
       <p class="mt-1 text-sm text-gray-500">Vous n'avez pas de tâches assignées pour le moment.</p>
     </div>
   </div>
+
+      <TaskDetailDrawer
+        :is-open="isDrawerOpen"
+        :task="selectedTask"
+        @close="isDrawerOpen = false"
+        @task-validated="handleTaskValidated"
+      />
+  />
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
+import TaskDetailDrawer from './TaskDetailDrawer.vue'
 
 const props = defineProps({
   apiUrl: {
     type: String,
     required: true
+  },
+  userRole: {
+    type: String,
+    default: 'membre'
   }
 })
 
 const tasks = ref({ data: [], current_page: 1, last_page: 1, per_page: 15, total: 0 })
 const loading = ref(false)
+const loadError = ref('')
 const filters = ref({
   q: '',
   status: 'all',
@@ -188,6 +210,30 @@ const sort = ref({
   column: 'due_date',
   direction: 'desc'
 })
+const isDrawerOpen = ref(false)
+const selectedTask = ref(null)
+// using global FlashToast via events
+
+const handleTaskValidated = (data) => {
+  if (!data.task) return
+
+  // Update task status in the list
+  const taskIndex = tasks.value.data.findIndex(t => t.id === data.task.id)
+  if (taskIndex !== -1) {
+    tasks.value.data[taskIndex].status = 'validated'
+  }
+
+  // Show global toast via custom event (handled by FlashToast)
+  const toastType = data.type === 'error' ? 'error' : 'success'
+  window.dispatchEvent(new CustomEvent('flash-message', { detail: { [toastType]: data.message } }))
+
+  // Close drawer after success
+  if (toastType === 'success') {
+    setTimeout(() => {
+      isDrawerOpen.value = false
+    }, 500)
+  }
+}
 
 const uniqueProjects = computed(() => {
   const projects = new Map()
@@ -210,7 +256,8 @@ const statusBadgeClass = (status) => {
 }
 
 const formatStatus = (status) => {
-  return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+  if (!status) return 'Inconnu'
+  return String(status).replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
 }
 
 const formatDate = (date) => {
@@ -220,6 +267,8 @@ const formatDate = (date) => {
 
 const fetchTasks = async (page = 1) => {
   loading.value = true
+  loadError.value = ''
+  console.log('%c[MyTasks.fetchTasks] Starting fetch from URL:', 'color: blue', props.apiUrl)
   try {
     const params = {
       ...filters.value,
@@ -227,11 +276,26 @@ const fetchTasks = async (page = 1) => {
       dir: sort.value.direction,
       page
     }
+    console.log('%c[MyTasks.fetchTasks] Request params:', 'color: cyan', params)
     const response = await axios.get(props.apiUrl, { params })
-    tasks.value = response.data
+    console.log('%c[MyTasks.fetchTasks] Response received:', 'color: green', response.data)
+    if (response?.data?.data && Array.isArray(response.data.data)) {
+      tasks.value = response.data
+      console.log('%c[MyTasks.fetchTasks] ✓ Tasks loaded successfully, count:', 'color: green', response.data.data.length)
+      // Debug: log can_view flags for verification
+      try {
+        console.log('%c[MyTasks.fetchTasks] can_view flags:', 'color: purple', response.data.data.map(t => ({ id: t.id, can_view: t.can_view })))
+      } catch (e) {
+        console.log('%c[MyTasks.fetchTasks] can_view inspect failed', 'color: orange', e)
+      }
+    } else {
+      throw new Error(`Format de réponse invalide. Reçu: ${JSON.stringify(response.data).substring(0, 200)}`)
+    }
   } catch (error) {
-    console.error('Error fetching tasks:', error)
-    alert('Erreur lors du chargement des tâches')
+    console.error('%c[MyTasks.fetchTasks] ✗ ERROR:', 'color: red; font-weight: bold', error.message, error)
+    console.log('%c[MyTasks.fetchTasks] Error response:', 'color: orange', error.response?.data)
+    loadError.value = `Erreur: ${error.message || 'Impossible de charger les tâches'}`
+    tasks.value = { data: [], current_page: 1, last_page: 1, per_page: 15, total: 0 }
   } finally {
     loading.value = false
   }
@@ -253,23 +317,14 @@ const changePage = (page) => {
   }
 }
 
-const validateTask = async (task) => {
-  if (!confirm('Valider cette tâche ?')) return
-  
-  try {
-    await axios.post(`/tasks/${task.id}/validate`, {
-      _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-    })
-    // Refresh tasks
-    fetchTasks(tasks.value.current_page)
-    alert('Tâche validée avec succès !')
-  } catch (error) {
-    console.error('Validation error:', error)
-    alert('Erreur lors de la validation')
-  }
+const validateTask = (task) => {
+  // Open drawer to validate from there
+  selectedTask.value = task
+  isDrawerOpen.value = true
 }
 
 onMounted(() => {
+  console.log('%c[MyTasks] Component mounted, props.apiUrl:', 'color: green', props.apiUrl)
   fetchTasks()
 })
 

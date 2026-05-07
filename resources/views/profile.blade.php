@@ -114,6 +114,10 @@
             </div>
         </div>
     </div>
+
+    <!-- Notification preferences removed -->
 </div>
+</div>
+
 @endsection
 

@@ -13,6 +13,7 @@ export default defineConfig({
                 'resources/js/calendar-mount.js',
                 'resources/js/gantt.js',
                 'resources/js/structures.js',
+                'resources/js/structures-mount.js',
             ],
             refresh: true,
         }),

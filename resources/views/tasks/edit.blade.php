@@ -111,7 +111,7 @@
                             <option value="{{ $otherTask->id }}">{{ $otherTask->name }}</option>
                         @endforeach
                     </select>
-                    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                    <button type="submit" class="inline-flex items-center justify-center bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:bg-green-700 active:bg-green-800 transition !text-white">
                         Ajouter
                     </button>
                 </div>
@@ -131,10 +131,10 @@
         </div>
 
         <div class="responsive-form-actions">
-            <button type="submit" {{ $task->status === 'validated' ? 'disabled' : '' }} class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 {{ $task->status === 'validated' ? 'opacity-50 cursor-not-allowed' : '' }}">
+            <button type="submit" {{ $task->status === 'validated' ? 'disabled' : '' }} class="inline-flex items-center justify-center bg-primary-500 text-white px-6 py-2 rounded-md hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 {{ $task->status === 'validated' ? 'opacity-50 cursor-not-allowed' : '' }} !text-white">
                 {{ $task->status === 'validated' ? 'Validée (lecture seule)' : 'Mettre à jour' }}
             </button>
-            <a href="{{ route('tasks.index') }}" class="border border-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-50">
+            <a href="{{ route('tasks.index') }}" class="border border-[#E2E8F0] text-[#1A202C] px-6 py-2 rounded-md hover:bg-[#F8F9FC]">
                 Annuler
             </a>
         </div>

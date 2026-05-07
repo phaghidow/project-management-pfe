@@ -7,7 +7,7 @@
                 <p class="text-lg text-gray-600 mt-2">Organigramme dynamique avec hiérarchie</p>
             </div>
             <div class="flex gap-3">
-                <a href="{{ route('structures.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg transition-all">
+                <a href="{{ route('admin.structures.create') }}" class="btn-primary btn-lg text-center">
                     + Ajouter structure
                 </a>
             </div>
@@ -35,33 +35,26 @@
             </div>
         @endif
 
-        <div class="grid lg:grid-cols-3 gap-8">
+        <div class="space-y-8">
             {{-- Dynamic Tree --}}
-            <div class="lg:col-span-2">
-                <div class="bg-white shadow-xl rounded-2xl p-8 border border-gray-200">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold text-gray-900">Arbre hiérarchique</h2>
-                        <button id="refresh-tree" class="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-all">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                            </svg>
-                            Actualiser
-                        </button>
-                    </div>
-                    <div id="tree-container" class="structures-tree space-y-4 min-h-[400px]">
-                        <div class="text-center py-12 text-gray-500">
-                            <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                            </svg>
-                            <p>Chargement de l'organigramme...</p>
-                        </div>
+            <div class="w-full">
+                <div
+                    id="organigramme-root"
+                    data-api-url="{{ route('api.structures') }}"
+                    class="structures-tree w-full min-h-[400px] overflow-x-auto"
+                >
+                    <div class="text-center py-12 text-gray-500 bg-white shadow-xl rounded-2xl border border-gray-200">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                        <p>Chargement de l'organigramme...</p>
                     </div>
                 </div>
             </div>
 
             {{-- Flat List --}}
             <div>
-                <div class="bg-white shadow-xl rounded-2xl p-6 sticky top-6 h-fit">
+                <div class="bg-white shadow-xl rounded-2xl p-6">
                     <h3 class="text-xl font-bold mb-4">Liste rapide</h3>
                     <div class="space-y-3 max-h-96 overflow-y-auto">
                         @foreach($structures as $structure)
@@ -72,8 +65,8 @@
                                         <div class="text-xs text-gray-500">{{ $structure->type }} • Niv. {{ $structure->level }}</div>
                                     </div>
                                     <div class="opacity-0 group-hover:opacity-100 transition flex gap-1">
-                                        <a href="{{ route('structures.edit', $structure) }}" class="text-blue-600 hover:text-blue-800 text-xs p-1 hover:bg-blue-100 rounded">Édit</a>
-                                        <form action="{{ route('structures.destroy', $structure) }}" method="POST" class="inline" onsubmit="return confirm('Confirmer suppression?')">
+                                        <a href="{{ route('admin.structures.edit', $structure) }}" class="text-blue-600 hover:text-blue-800 text-xs p-1 hover:bg-blue-100 rounded">Édit</a>
+                                        <form action="{{ route('admin.structures.destroy', $structure) }}" method="POST" class="inline" onsubmit="return confirm('Confirmer suppression?')">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="text-red-600 hover:text-red-800 text-xs p-1 hover:bg-red-100 rounded">Suppr</button>
                                         </form>
@@ -88,5 +81,5 @@
     </div>
 </div>
 
-@vite(['resources/js/structures.js'])
+@vite(['resources/js/structures-mount.js'])
 </x-app-layout>

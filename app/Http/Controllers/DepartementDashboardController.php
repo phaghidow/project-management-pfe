@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Attachment;
 use App\Models\Comment;
 use App\Models\Milestone;
 use App\Models\Project;
@@ -25,7 +26,7 @@ class DepartementDashboardController extends Controller
         $projects = Project::whereHas('user', function ($q) use ($structureIds) {
             $q->whereIn('structure_id', $structureIds);
         })
-            ->with(['user.structure', 'milestones'])
+            ->with(['user.structure', 'milestones', 'attachments.user'])
             ->latest()
             ->get();
 
@@ -33,7 +34,7 @@ class DepartementDashboardController extends Controller
         $tasks = Task::whereHas('milestone.project.user', function ($q) use ($structureIds) {
             $q->whereIn('structure_id', $structureIds);
         })
-            ->with(['milestone.project', 'users'])
+            ->with(['milestone.project', 'users', 'attachments.user', 'comments.user'])
             ->latest()
             ->get();
 
@@ -59,8 +60,19 @@ class DepartementDashboardController extends Controller
             'milestones_count' => $milestones->count(),
             'progress_avg' => $projects->avg('progress') ?? 0,
             'tasks_validated' => $tasks->where('status', 'validated')->count(),
-            'tasks_pending' => $tasks->whereIn('status', ['pending', 'started', 'in_progress'])->count(),
+            'tasks_pending' => $tasks->where('status', 'in_progress')->count(),
         ];
+
+        $recentAttachments = $projects->flatMap->attachments
+            ->merge($tasks->flatMap->attachments)
+            ->sortByDesc('created_at')
+            ->take(8)
+            ->values();
+
+        $recentComments = $tasks->flatMap->comments
+            ->sortByDesc('created_at')
+            ->take(8)
+            ->values();
 
         return view('departement.dashboard', compact(
             'projects',
@@ -68,8 +80,11 @@ class DepartementDashboardController extends Controller
             'milestones',
             'members',
             'stats',
-            'structureIds'
+            'structureIds',
+            'recentAttachments',
+            'recentComments'
         ));
     }
+
 }
 

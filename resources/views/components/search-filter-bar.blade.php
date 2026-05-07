@@ -66,7 +66,7 @@
     <div class="flex items-center gap-2 pt-4 border-t border-gray-200">
         <button
             type="submit"
-            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+            class="inline-flex items-center justify-center px-4 py-2 bg-primary-500 text-white font-medium rounded-md hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 transition-colors !text-white"
         >
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -77,7 +77,7 @@
         @if($showReset && (request()->filled($searchFieldName) || request()->filled(array_keys($filterOptions))))
             <a
                 href="{{ $currentRoute }}"
-                class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-md hover:bg-gray-300 transition-colors"
+                class="inline-flex items-center px-4 py-2 bg-[#F8F9FC] text-[#1A202C] font-medium rounded-md hover:bg-[#E2E8F0] transition-colors"
             >
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>

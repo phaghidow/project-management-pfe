@@ -19,14 +19,13 @@
             </p>
         </div>
         <div class="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
-            @if($user->isAdmin() || $user->isChefProjet())
-                <a href="{{ route('projects.create') }}" class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg transition-all">
+            @if($user->isAdmin() || $user->isChefDepartement())
+                <a href="{{ route('projects.create') }}" class="btn-primary">
                     + Nouveau projet
                 </a>
             @endif
-            <a href="/notifications" class="bg-at-orange-500/10 hover:bg-at-orange-500/20 text-at-orange-500 px-6 py-3 rounded-xl font-medium shadow-lg transition-all flex items-center border border-at-orange-500/30">
-                🔔 Notifications
-                <span id="dash-notif-badge" class="ml-2 bg-at-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">0</span>
+            <a href="{{ route('gantt') }}" class="btn-primary">
+                🎯 Gantt
             </a>
         </div>
     </div>
@@ -62,7 +61,7 @@
                     </div>
                 </div>
                 <div class="mt-4 text-sm text-emerald-600 font-semibold">
-                    {{ $tasks->whereIn('status', ['pending', 'started', 'in_progress'])->count() }} en cours
+                    {{ $tasks->where('status', 'in_progress')->count() }} en cours
                 </div>
             </div>
 
@@ -99,9 +98,9 @@
             {{-- Admin / Chef Dept / Chef Projet : cartes complètes --}}
             <div class="bg-white p-6 shadow-lg rounded-2xl hover:shadow-2xl transition-all border border-gray-100">
                 <div class="flex items-center">
-                    <div class="p-3 bg-linear-to-r from-primary-500 to-primary-500/80 rounded-xl shadow-lg">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                    <div class="p-3 rounded-xl shadow-lg" style="background: linear-gradient(135deg, #E8ECFF 0%, #DCE4FF 100%);">
+                        <svg class="w-8 h-8 text-[#2E3192]" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 7a2 2 0 012-2h4l2 2h6a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
                         </svg>
                     </div>
                     <div class="ml-5">
@@ -137,9 +136,9 @@
 
             <div class="bg-white p-6 shadow-lg rounded-2xl hover:shadow-2xl transition-all border border-gray-100">
                 <div class="flex items-center">
-                    <div class="p-3 bg-linear-to-r from-secondary-500 to-secondary-500/80 rounded-xl shadow-lg">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    <div class="p-3 rounded-xl shadow-lg" style="background: linear-gradient(135deg, #FFF2DF 0%, #FFE7C2 100%);">
+                        <svg class="w-8 h-8 text-[#D97706]" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 4h2v16H4V4zm7 5h2v11h-2V9zm7-3h2v14h-2V6z" />
                         </svg>
                     </div>
                     <div class="ml-5">
@@ -192,7 +191,7 @@
     @endif
 
     {{-- Quick Sections --}}
-    <div class="grid grid-cols-1 {{ $user->isMembre() ? 'lg:grid-cols-2' : 'xl:grid-cols-3' }} gap-6">
+    <div class="grid grid-cols-1 {{ $user->isMembre() ? 'lg:grid-cols-2' : ($user->isChefProjet() ? 'xl:grid-cols-2' : 'xl:grid-cols-3') }} gap-6 mb-8">
         {{-- Projets (masqué pour membre si peu de contenu) --}}
         @if(!$user->isMembre())
         <div class="bg-white shadow-xl rounded-2xl p-6">
@@ -216,7 +215,7 @@
                         <div class="text-sm text-slate-700">{{ $project->user->name ?? 'Non assigné' }} @if($user->isChefDepartement() && $project->user?->structure_id !== $user->structure_id)(sub-struct)@endif</div>
                     </div>
                     <div class="text-right">
-                        <div class="text-sm font-medium text-gray-900">{{ $project->progress ?? 0 }}%</div>
+                        <div class="text-sm font-medium text-gray-900">{{ number_format($project->progress ?? 0, 2) }}%</div>
                         <div class="w-20 bg-gray-200 rounded-full h-2 mt-1">
                             <div class="bg-linear-to-r from-primary-500 to-primary-500/60 h-2 rounded-full" style="width: {{ $project->progress ?? 0 }}%"></div>
                         </div>
@@ -226,8 +225,8 @@
                 @empty
                 <div class="text-center py-12 text-slate-700">
                     Aucun projet visible.
-                    @if($user->isChefProjet() || $user->isAdmin())
-                    <a href="{{ route('projects.create') }}" class="font-semibold hover:text-primary-500">Créer le premier !</a>
+                    @if($user->isAdmin())
+                    <a href="{{ route('projects.create') }}" class="font-semibold text-[#2E3192] hover:text-[#1E216D]">Créer le premier !</a>
                     @endif
                 </div>
                 @endforelse
@@ -274,7 +273,7 @@
         </div>
 
         {{-- Calendrier compact --}}
-        <div class="bg-white shadow-xl rounded-2xl p-6">
+        <div class="bg-white shadow-xl rounded-2xl p-6 {{ $user->isChefProjet() ? 'xl:col-span-2' : '' }}">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold">📅 Calendrier</h2>
                 <a href="{{ route('calendar.index') }}" class="text-primary-500 hover:text-primary-600 font-medium">Complet →</a>
@@ -285,14 +284,18 @@
         </div>
     </div>
 
+    @include('partials.recent-attachments', ['attachments' => $recentAttachments ?? collect(), 'title' => 'Pièces jointes du tableau de bord'])
+
+    @include('partials.recent-comments', ['comments' => $recentComments ?? collect(), 'title' => 'Commentaires récents'])
+
     {{-- Section Chef Département : Équipe & Structures --}}
     @if($user->isChefDepartement())
     <div class="mt-8 p-6 bg-linear-to-r from-primary-500/5 to-secondary-500/5 rounded-2xl border border-primary-500/20">
         <h3 class="text-xl font-bold mb-4 text-primary-500">👥 Équipe Département</h3>
         <p class="text-slate-700 mb-4">Gérez votre équipe et structures enfants.</p>
         <div class="flex gap-3">
-            <a href="{{ route('admin.users.index') }}" class="bg-primary-500 text-white px-6 py-2 rounded-xl font-medium hover:bg-primary-600 transition">Utilisateurs</a>
-            <a href="{{ route('admin.structures.index') }}" class="bg-secondary-500/20 text-secondary-500 hover:bg-secondary-500/30 px-6 py-2 rounded-xl font-medium transition border border-secondary-500/30">Structures</a>
+            <a href="{{ route('admin.users.index') }}" class="inline-flex items-center justify-center bg-primary-500 text-white px-6 py-2 rounded-xl font-medium hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 transition !text-white">Utilisateurs</a>
+            <a href="{{ route('admin.structures.index') }}" class="btn-secondary text-center">Structures</a>
         </div>
     </div>
     @endif
@@ -322,43 +325,136 @@
     </div>
     @endif
 
+    {{-- Section Chef Projet : Affectation des membres aux projets --}}
+    @if($user->isChefProjet())
+    <div class="mt-8 p-6 bg-linear-to-r from-blue-500/5 to-indigo-500/5 rounded-2xl border border-blue-500/20">
+        <h3 class="text-xl font-bold mb-4 text-blue-600">👥 Affecter des membres aux projets</h3>
+        <p class="text-slate-700 mb-4 text-sm">Sélectionnez un projet et assignez des membres avec leur rôle.</p>
+
+        @php
+            $chefProjects = \App\Models\Project::where('user_id', $user->id)
+                ->with(['members'])
+                ->orderBy('name')
+                ->get();
+        @endphp
+
+        @forelse($chefProjects as $project)
+        <div class="mb-6 bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div class="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <div class="font-semibold text-gray-900">{{ $project->name }}</div>
+                    <div class="text-xs text-slate-500">{{ $project->members->count() }} membre(s) assigné(s)</div>
+                </div>
+                <span class="text-xs font-medium px-2 py-1 rounded-full
+                    {{ $project->status === 'draft' ? 'bg-gray-100 text-gray-800' : ($project->status === 'in_progress' ? 'bg-blue-100 text-blue-800' : ($project->status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800')) }}">
+                    {{ ucfirst($project->status) }}
+                </span>
+            </div>
+
+            {{-- Membres actuels --}}
+            @if($project->members->count() > 0)
+            <div class="p-4 border-b border-gray-100">
+                <h4 class="text-sm font-medium text-gray-700 mb-2">Membres assignés :</h4>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($project->members as $member)
+                    <div class="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-1.5 text-sm">
+                        <span class="font-medium text-gray-800">{{ $member->name }}</span>
+                        @if($member->pivot->role_in_project)
+                            <span class="text-xs text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">{{ $member->pivot->role_in_project }}</span>
+                        @endif
+                        <form method="POST" action="{{ route('projects.remove-member', [$project, $member]) }}" class="inline ajax-form">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn-danger btn-sm ml-1" title="Retirer" data-confirm-delete="Retirer ce membre du projet ?">×</button>
+                        </form>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            {{-- Formulaire d'affectation --}}
+            <div class="p-4">
+                <form method="POST" action="{{ route('projects.assign-members', $project) }}" class="space-y-3 ajax-form">
+                    @csrf
+                    <div class="flex flex-col sm:flex-row gap-3 items-end">
+                        <div class="flex-1 w-full">
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Membre à affecter</label>
+                            <select name="users[]" id="member-select-{{ $project->id }}" class="w-full border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required onchange="showMemberFunction(this, {{ $project->id }})">
+                                <option value="" data-function="">-- Choisir un membre --</option>
+                                @foreach($availableMembers as $member)
+                                    @if(!$project->members->contains('id', $member->id))
+                                    <option value="{{ $member->id }}" data-function="{{ $member->function ?? 'Non spécifiée' }}">{{ $member->name }} — {{ $member->email }}</option>
+                                    @endif
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="w-full sm:w-auto">
+                            <label class="block text-xs font-medium text-gray-500 mb-1">Fonction</label>
+                            <div id="function-display-{{ $project->id }}" class="px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-700 font-medium min-w-[140px] text-center">
+                                —
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary btn-sm whitespace-nowrap w-full sm:w-auto">
+                            + Affecter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        @empty
+        <div class="text-center py-8 text-slate-500 bg-white rounded-xl border border-gray-200">
+            Vous n'avez aucun projet pour le moment.
+        </div>
+        @endforelse
+    </div>
+    @endif
+
     {{-- Section Membre : Actions rapides --}}
     @if($user->isMembre())
     <div class="mt-8 p-6 bg-linear-to-r from-primary-500/5 to-secondary-500/5 rounded-2xl border border-primary-500/20">
         <h3 class="text-xl font-bold mb-4 text-primary-500">⚡ Actions rapides</h3>
         <div class="flex flex-wrap gap-3">
-            <a href="{{ route('tasks.my-tasks') }}" class="bg-primary-500 text-white px-6 py-2 rounded-xl font-medium hover:bg-primary-600 transition">Mes tâches</a>
-            <a href="{{ route('calendar.index') }}" class="bg-secondary-500/20 text-secondary-500 hover:bg-secondary-500/30 px-6 py-2 rounded-xl font-medium transition border border-secondary-500/30">Calendrier</a>
+            <a href="{{ route('tasks.my-tasks') }}" class="inline-flex items-center justify-center bg-primary-500 text-white px-6 py-2 rounded-xl font-medium hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 transition !text-white">Mes tâches</a>
+            <a href="{{ route('calendar.index') }}" class="btn-primary btn-block text-center">Calendrier</a>
         </div>
     </div>
     @endif
+
+    <!-- Notification preferences removed -->
 </div>
+
 
 @vite(['resources/js/calendar-mount.js'])
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Update notification badge
-    fetch('/notifications/count')
-        .then(res => res.json())
-        .then(count => {
-            document.getElementById('dash-notif-badge').textContent = count;
-        });
+    // Member function display for project assignment
+    window.showMemberFunction = function(select, projectId) {
+        const selectedOption = select.options[select.selectedIndex];
+        const func = selectedOption.getAttribute('data-function') || '—';
+        const display = document.getElementById('function-display-' + projectId);
+        if (display) {
+            display.textContent = func;
+            display.className = func !== '—' && func !== 'Non spécifiée'
+                ? 'px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700 font-medium min-w-[140px] text-center'
+                : 'px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-500 font-medium min-w-[140px] text-center';
+        }
+    };
 
     @if(!$user->isMembre())
     // Status chart - AT colors
     const statusCtx = document.getElementById('statusChart')?.getContext('2d');
     if (statusCtx) {
         const statusData = {
-            labels: ['À faire', 'En cours', 'Validées'],
+            labels: ['En cours', 'Validées'],
             datasets: [{
                 data: [
-                    {{ $tasks->where('status', 'pending')->count() }},
-                    {{ $tasks->whereIn('status', ['started', 'in_progress'])->count() }},
+                    {{ $tasks->where('status', 'in_progress')->count() }},
                     {{ $tasks->where('status', 'validated')->count() }}
                 ],
-                backgroundColor: ['#ef4444', '#f37021', '#397B44'],
+                backgroundColor: ['#f37021', '#397B44'],
                 borderWidth: 0,
                 cutout: '60%'
             }]
@@ -369,12 +465,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Progress chart - AT primary
     const progressCtx = document.getElementById('progressChart')?.getContext('2d');
     if (progressCtx) {
-        const projectsProgress = @json($projects->pluck('progress', 'name')->filter());
+        const projectsProgressRaw = @json($projects->pluck('progress', 'name')->filter()->toArray());
+        const projectsProgress = (projectsProgressRaw && typeof projectsProgressRaw === 'object' && !Array.isArray(projectsProgressRaw))
+            ? projectsProgressRaw
+            : {};
         new Chart(progressCtx, {
             type: 'bar',
             data: {
-                labels: projectsProgress.keys().toArray(),
-                datasets: [{ label: 'Progression %', data: projectsProgress.values().toArray(), backgroundColor: 'rgba(243, 112, 33, 0.8)' }]
+                labels: Object.keys(projectsProgress),
+                datasets: [{ label: 'Progression %', data: Object.values(projectsProgress), backgroundColor: 'rgba(243, 112, 33, 0.8)' }]
             },
             options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 100 } } }
         });

@@ -13,28 +13,32 @@
 
 
         <div class="flex flex-wrap gap-2">
-            <a href="{{ route('projects.edit', $project) }}" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
+            <a href="{{ route('projects.edit', $project) }}" class="inline-flex items-center justify-center bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 focus:bg-yellow-700 active:bg-yellow-800 transition !text-white">
                 Modifier projet
             </a>
-            @if($project->tasks()->where('status', '!=', 'validated')->count() === 0 && $project->status !== 'closed')
+            @can('closeProject', $project)
+            @if($project->tasks()->where('status', '!=', 'validated')->count() === 0 && $project->status !== 'completed')
                 <form method="POST" action="{{ route('projects.close', $project) }}" class="inline">
                     @csrf
-                    <button type="submit" onclick="return confirm('Clôturer définitivement ce projet ?')" class="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700">
+                    <button type="submit"
+                        onclick="return confirm('Clôturer définitivement ce projet ?')"
+                        class="inline-flex items-center justify-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:bg-green-700 active:bg-green-800 transition !text-white">
                         ✅ Clôturer projet
                     </button>
                 </form>
             @endif
+            @endcan
             <form method="POST" action="{{ route('projects.destroy', $project) }}" class="inline">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700" onclick="return confirm('Supprimer ce projet ?')">
+                <button type="submit" class="inline-flex items-center justify-center bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:bg-red-700 active:bg-red-800 transition !text-white" onclick="return confirm('Supprimer ce projet ?')">
                     Supprimer (soft)
                 </button>
             </form>
             @can('restore', $project)
             <form method="POST" action="{{ route('projects.restore', $project) }}" class="inline">
                 @csrf
-                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700" onclick="return confirm('Restaurer ?')">
+                <button type="submit" class="inline-flex items-center justify-center bg-success-500 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:bg-green-700 active:bg-green-800 transition !text-white" onclick="return confirm('Restaurer ?')">
                     Restaurer
                 </button>
             </form>
@@ -43,7 +47,7 @@
             <form method="POST" action="{{ route('projects.force-delete', $project) }}" class="inline">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-900" onclick="return confirm('Supprimer définitivement ?')">
+                <button type="submit" class="inline-flex items-center justify-center bg-red-800 text-white px-4 py-2 rounded-md hover:bg-red-900 focus:bg-red-900 active:bg-red-950 transition !text-white" onclick="return confirm('Supprimer définitivement ?')">
                     Force Delete
                 </button>
             </form>
@@ -74,7 +78,7 @@
     <div class="bg-white shadow rounded-lg p-6 mb-8">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-bold">Tâches du projet ({{ $project->tasks->count() }})</h2>
-            <a href="{{ route('tasks.create', ['project_id' => $project->id]) }}" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm flex items-center gap-2">
+            <a href="{{ route('tasks.create', ['project_id' => $project->id]) }}" class="inline-flex items-center justify-center bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:bg-green-700 active:bg-green-800 text-sm gap-2 transition !text-white">
                 + Nouvelle tâche
             </a>
         </div>
@@ -108,31 +112,31 @@
 
             <!-- Liste des tâches -->
             <div class="table-responsive overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-                <table class="responsive-table divide-y divide-gray-300">
+                <table class="w-full min-w-full responsive-table divide-y divide-gray-300">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tâche</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Échéance</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignés</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Validée</th>
-                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tâche</th>
+                            <th class="w-24 px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                            <th class="w-32 px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Échéance</th>
+                            <th class="max-w-xs px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assignés</th>
+                            <th class="w-32 px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Validée</th>
+                            <th class="w-20 px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($project->tasks as $task)
                             <tr class="{{ $task->status === 'validated' ? 'opacity-75 bg-green-50' : '' }}">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $task->name }}</div>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-medium text-gray-900 break-words">{{ $task->name }}</div>
                                     @if($task->milestone)
                                         <div class="text-xs text-gray-500">Jalon: {{ $task->milestone->name }}</div>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="w-24 px-6 py-4 whitespace-nowrap">
                                     <x-status-badge :status="$task->status" />
 
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td class="w-32 px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     @if($task->due_date)
                                         <x-due-date :date="$task->due_date" format="d/m" />
 
@@ -140,11 +144,11 @@
                                         <span class="text-gray-500">-</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="max-w-xs px-6 py-4">
                                     @if($task->users->count() > 0)
                                         <div class="flex flex-wrap gap-1">
                                             @foreach($task->users as $user)
-                                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full">
+                                                <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full whitespace-normal">
                                                     {{ $user->name }}
                                                 </span>
                                             @endforeach
@@ -153,14 +157,14 @@
                                         <span class="text-gray-500 text-xs">-</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td class="w-32 px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     @if($task->validated_at)
                                         {{ $task->validated_at->format('d/m/Y') }}
                                     @else
                                         <span class="text-gray-500">-</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <td class="w-20 px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <a href="{{ route('tasks.show', $task) }}" class="text-indigo-600 hover:text-indigo-900">Voir</a>
                                 </td>
                             </tr>
@@ -175,7 +179,7 @@
                 </svg>
                 <h3 class="text-lg font-medium mb-2">Aucune tâche</h3>
                 <p class="mb-4">Commencez par ajouter votre première tâche.</p>
-                <a href="{{ route('tasks.create', ['project_id' => $project->id]) }}" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+                <a href="{{ route('tasks.create', ['project_id' => $project->id]) }}" class="inline-flex items-center justify-center bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 focus:bg-green-700 active:bg-green-800 transition !text-white">
                     + Créer la première tâche
                 </a>
             </div>
@@ -186,7 +190,7 @@
     <div class="bg-white shadow rounded-lg p-6 mb-8">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-bold">Jalons ({{ $project->milestones->count() }})</h2>
-            <a href="{{ route('milestones.create') }}?project_id={{ $project->id }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm">
+            <a href="{{ route('milestones.create') }}?project_id={{ $project->id }}" class="inline-flex items-center justify-center bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 text-sm transition !text-white">
                 + Ajouter jalon
             </a>
         </div>
@@ -209,7 +213,7 @@
             </div>
         @else
             <div class="text-center py-12 text-gray-500">
-                Aucun jalon. <a href="{{ route('milestones.create') }}?project_id={{ $project->id }}" class="text-blue-600 hover:underline">Créer le premier</a>
+                Aucun jalon. <a href="{{ route('milestones.create') }}?project_id={{ $project->id }}" class="text-primary-600 hover:text-primary-700 hover:underline">Créer le premier</a>
             </div>
         @endif
     </div>
@@ -225,10 +229,10 @@
         <a href="{{ route('projects.index') }}" class="text-gray-600 hover:text-gray-900">
             ← Tous les projets
         </a>
-        <a href="{{ route('milestones.index') }}" class="text-blue-600 hover:underline">
+        <a href="{{ route('milestones.index') }}" class="text-primary-600 hover:text-primary-700 hover:underline">
             Voir tous les jalons
         </a>
-        <a href="{{ route('tasks.index') }}" class="text-green-600 hover:underline">
+        <a href="{{ route('tasks.index') }}" class="text-success-500 hover:underline">
             Voir toutes les tâches
         </a>
     </div>

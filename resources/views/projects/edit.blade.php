@@ -21,12 +21,12 @@
                 </div>
 
                 <div>
-                    <x-input-label for="user_id" :value="'Responsable'" />
+                    <x-input-label for="user_id" :value="'Responsable (Chef de Projet)'" />
                     <select name="user_id" id="user_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
-                        <option value="">Sélectionner un utilisateur</option>
-                        @foreach(\App\Models\User::where('active', true)->get() as $user)
-                            <option value="{{ $user->id }}" {{ old('user_id', $project->user_id) == $user->id ? 'selected' : '' }}>
-                                {{ $user->name }} ({{ $user->email }})
+                        <option value="">Sélectionner un chef de projet</option>
+                        @foreach($availableProjectManagers as $manager)
+                            <option value="{{ $manager->id }}" {{ old('user_id', $project->user_id) == $manager->id ? 'selected' : '' }}>
+                                {{ $manager->name }} ({{ $manager->email }})
                             </option>
                         @endforeach
                     </select>

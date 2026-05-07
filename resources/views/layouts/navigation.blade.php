@@ -12,10 +12,11 @@
         <ul class="space-y-1">
             @php
                 $user = Auth::user();
-                $canManageExecution = $user && ($user->isAdmin() || $user->isChefDepartement() || $user->isChefProjet());
             @endphp
 
-            {{-- Dashboard -- accessible to all roles --}}
+            {{-- ========================================
+                SECTION 1: DASHBOARD (Tous les rôles)
+                ======================================== --}}
             <li>
                 <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="group flex items-center px-3 py-3 rounded-xl sidebar-link">
                     <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -25,17 +26,24 @@
                 </x-nav-link>
             </li>
 
-            {{-- Projets -- accessible to all roles --}}
+            {{-- ========================================
+                SECTION 2: PROJETS (Selon le rôle)
+                ======================================== --}}
+
+            {{-- Rôle: Admin / Chef de Département (Vue globale des projets) --}}
+            @if($user->isAdmin() || $user->isChefDepartement())
             <li>
-                <x-nav-link :href="route('projects.index')" :active="request()->routeIs('projects.*')" class="group flex items-center px-3 py-3 rounded-xl sidebar-link">
+                <x-nav-link :href="route('projects.index')" :active="request()->routeIs('projects.index')" class="group flex items-center px-3 py-3 rounded-xl sidebar-link">
                     <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                     </svg>
                     Projets
                 </x-nav-link>
             </li>
+            @endif
 
-            {{-- Mes Projets -- accessible to all roles --}}
+            {{-- Rôle: Membre / Chef de Projet (Mes projets) --}}
+            @if($user->isMembre() || $user->isChefProjet())
             <li>
                 <x-nav-link :href="route('projects.my-projects')" :active="request()->routeIs('projects.my-projects')" class="group flex items-center px-3 py-3 rounded-xl sidebar-link">
                     <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,20 +52,14 @@
                     Mes Projets
                 </x-nav-link>
             </li>
-
-            {{-- Tâches (all tasks) -- admin, chef_dept, chef_projet only --}}
-            @if($canManageExecution)
-            <li>
-                <x-nav-link :href="route('tasks.index')" :active="request()->routeIs('tasks.*') && !request()->routeIs('tasks.my-tasks')" class="group flex items-center px-3 py-3 rounded-xl sidebar-link">
-                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                    </svg>
-                    Tâches
-                </x-nav-link>
-            </li>
             @endif
 
-            {{-- Mes Tâches -- accessible to all roles --}}
+            {{-- ========================================
+                SECTION 3: TÂCHES (Selon le rôle)
+                ======================================== --}}
+
+            {{-- Rôle: Membre (Mes tâches uniquement) --}}
+            @if($user->isMembre())
             <li>
                 <x-nav-link :href="route('tasks.my-tasks')" :active="request()->routeIs('tasks.my-tasks')" class="group flex items-center px-3 py-3 rounded-xl sidebar-link">
                     <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -66,8 +68,36 @@
                     Mes Tâches
                 </x-nav-link>
             </li>
+            @endif
 
-            {{-- Calendrier -- accessible to all roles --}}
+            {{-- Rôle: Chef de Projet (Tâches management - pas "Mes Tâches") --}}
+            @if($user->isChefProjet())
+            <li>
+                <x-nav-link :href="route('tasks.index')" :active="request()->routeIs('tasks.index')" class="group flex items-center px-3 py-3 rounded-xl sidebar-link">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    Tâches
+                </x-nav-link>
+            </li>
+            @endif
+
+            {{-- Rôle: Chef de Département / Admin (Vue globale des tâches) --}}
+            @if($user->isChefDepartement() || $user->isAdmin())
+            <li>
+                <x-nav-link :href="route('tasks.index')" :active="request()->routeIs('tasks.index')" class="group flex items-center px-3 py-3 rounded-xl sidebar-link">
+                    <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    Tâches
+                </x-nav-link>
+            </li>
+            @endif
+
+            {{-- ========================================
+                SECTION 4: CALENDRIER (Tous les rôles)
+                ======================================== --}}
+            @if($user->isMembre())
             <li>
                 <x-nav-link :href="route('calendar.index')" :active="request()->routeIs('calendar.*')" class="group flex items-center px-3 py-3 rounded-xl sidebar-link">
                     <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,9 +106,14 @@
                     Calendrier
                 </x-nav-link>
             </li>
+            @endif
 
-            {{-- Jalons -- admin, chef_dept, chef_projet only --}}
-            @if($canManageExecution)
+            {{-- ========================================
+                SECTION 5: JALONS (Chef de Projet+)
+                ======================================== --}}
+
+            {{-- Rôle: Chef de Projet / Chef de Département / Admin --}}
+            @if($user->isChefProjet() || $user->isChefDepartement() || $user->isAdmin())
             <li>
                 <x-nav-link :href="route('milestones.index')" :active="request()->routeIs('milestones.*')" class="group flex items-center px-3 py-3 rounded-xl sidebar-link">
                     <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,8 +124,10 @@
             </li>
             @endif
 
-            {{-- Admin only menu items --}}
-            @if($user && $user->isAdmin())
+            {{-- ========================================
+                SECTION 6: ADMINISTRATION (Admin seulement)
+                ======================================== --}}
+            @if($user->isAdmin())
             <li class="pt-4 mt-2 border-t border-gray-100">
                 <span class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Administration</span>
             </li>
@@ -114,13 +151,15 @@
             </li>
             @endif
 
-            {{-- Paramètres -- accessible to all roles --}}
+            {{-- ========================================
+                SECTION 7: COMPTE (Tous les rôles)
+                ======================================== --}}
             <li class="pt-4 mt-2 border-t border-gray-100">
                 <span class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Compte</span>
             </li>
 
             <li>
-                <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.*')" class="group flex items-center px-3 py-3 rounded-xl sidebar-link">
+                <x-nav-link :href="route('profile')" :active="request()->routeIs('profile.*')" class="group flex items-center px-3 py-3 rounded-xl sidebar-link">
                     <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                     </svg>
@@ -131,7 +170,7 @@
             <li>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="group flex items-center w-full px-3 py-3 rounded-xl text-sm font-medium text-gray-600 hover:text-[#2E3192] hover:bg-blue-50 transition-colors">
+                    <button type="submit" class="group inline-flex items-center justify-start w-full px-3 py-3 rounded-xl text-sm font-medium text-gray-600 hover:text-[#2E3192] hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors">
                         <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                         </svg>
@@ -142,4 +181,3 @@
         </ul>
     </nav>
 </div>
-

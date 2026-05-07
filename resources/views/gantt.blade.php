@@ -9,20 +9,21 @@
             <p class="text-lg text-gray-600 mt-1">Visualisation chronologique des tâches</p>
         </div>
         <div class="flex flex-col sm:flex-row gap-3">
-            <a href="{{ route('calendar.index') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium shadow-lg transition-all">
+            <a href="{{ route('calendar.index') }}" class="btn-primary px-6 py-3 rounded-xl font-medium shadow-lg transition-all">
                 📅 Calendrier
             </a>
         </div>
     </div>
 
     <div class="bg-white shadow-2xl rounded-3xl p-8 border border-gray-100">
-        <div id="gantt-container" class="min-h-175">
-            <div id="gantt-chart"></div>
-        </div>
+        <gantt-chart data-api-url="/api/tasks-gantt" data-view-mode="Day" data-language="en"></gantt-chart>
     </div>
 </div>
 
-@vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/gantt.js'])
+@vite(['resources/css/app.css', 'resources/js/app.js'])
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt/dist/frappe-gantt.css">
+@endpush
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', () => {

@@ -26,7 +26,7 @@
         </div>
 
         <div class="mt-3 flex justify-end">
-            <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
+            <button type="submit" class="inline-flex items-center justify-center bg-primary-500 text-white px-4 py-2 rounded-md hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 transition !text-white">
                 Uploader
             </button>
         </div>
@@ -49,12 +49,37 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2">
-                    <a href="{{ route('attachments.download', $attachment) }}" class="text-sm bg-white border border-gray-300 px-3 py-2 rounded hover:bg-gray-50">Télécharger</a>
+                    <a href="{{ route('attachments.download', $attachment) }}" class="inline-flex items-center justify-center text-sm bg-white border border-gray-300 px-3 py-2 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition">Télécharger</a>
+                    @can('update', $attachment)
+                        <details class="relative">
+                            <summary class="cursor-pointer list-none inline-flex items-center justify-center text-sm bg-white border border-gray-300 px-3 py-2 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition">Modifier</summary>
+                            <form method="POST" action="{{ route('attachments.update', $attachment) }}" enctype="multipart/form-data" class="mt-3 w-80 max-w-sm rounded-lg border border-gray-200 bg-white p-4 shadow-lg">
+                                @csrf
+                                @method('PATCH')
+
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Nom du fichier</label>
+                                        <input type="text" name="name" value="{{ $attachment->name }}" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-700 mb-1">Remplacer le fichier</label>
+                                        <input type="file" name="file" class="w-full text-xs border border-gray-300 rounded-md shadow-sm bg-white">
+                                    </div>
+
+                                    <div class="flex justify-end gap-2">
+                                        <button type="submit" class="inline-flex items-center justify-center text-sm bg-primary-500 text-white px-3 py-2 rounded-md hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 transition !text-white">Enregistrer</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </details>
+                    @endcan
                     @can('delete', $attachment)
                         <form method="POST" action="{{ route('attachments.destroy', $attachment) }}" onsubmit="return confirm('Supprimer ce fichier ?')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="text-sm bg-red-600 text-white px-3 py-2 rounded hover:bg-red-700">Supprimer</button>
+                            <button type="submit" class="inline-flex items-center justify-center text-sm bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 focus:bg-red-700 active:bg-red-800 transition !text-white">Supprimer</button>
                         </form>
                     @endcan
                 </div>

@@ -1,6 +1,6 @@
 <x-app-layout>
   <div class="page-mobile">
-    <div id="my-tasks-app" data-api-url="{{ route('api.my-tasks') }}"></div>
+    <div id="my-tasks-app" data-api-url="{{ route('tasks.my-tasks.data') }}" data-user-role="{{ auth()->user()->role }}"></div>
     
 @vite(['resources/js/app.js', 'resources/js/my-tasks-mount.js'])
   </div>

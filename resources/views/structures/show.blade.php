@@ -6,10 +6,10 @@
             <p class="text-xl text-gray-600 mt-2">{{ $structure->type === 'dg' ? 'Direction Générale' : ucfirst($structure->type) }}</p>
         </div>
         <div class="flex gap-3">
-            <a href="{{ route('structures.edit', $structure) }}" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition-all">
+            <a href="{{ route('admin.structures.edit', $structure) }}" class="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition-all">
                 Modifier
             </a>
-            <a href="{{ route('structures.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition-all">
+            <a href="{{ route('admin.structures.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition-all">
                 Liste
             </a>
         </div>
@@ -35,7 +35,7 @@
                                 <span class="text-sm font-medium text-gray-500">Parent</span>
                                 @if($structure->parent)
                                     <p class="text-xl font-semibold text-blue-600 hover:text-blue-800">
-                                        <a href="{{ route('structures.show', $structure->parent) }}">{{ $structure->parent->name }}</a>
+                                        <a href="{{ route('admin.structures.show', $structure->parent) }}">{{ $structure->parent->name }}</a>
                                     </p>
                                     <p class="text-sm text-gray-500">Niv. {{ $structure->parent->level }}</p>
                                 @else
@@ -55,7 +55,7 @@
                                             <div class="font-semibold text-gray-900">{{ $child->name }}</div>
                                             <div class="text-sm text-blue-700">{{ $child->type }}</div>
                                         </div>
-                                        <a href="{{ route('structures.show', $child) }}" class="text-blue-600 hover:text-blue-800 font-medium text-sm">Voir</a>
+                                        <a href="{{ route('admin.structures.show', $child) }}" class="text-blue-600 hover:text-blue-800 font-medium text-sm">Voir</a>
                                     </div>
                                 </div>
                             @empty
@@ -82,10 +82,10 @@
                 <div>
                     <h4 class="text-lg font-bold text-gray-900 mb-2">Actions rapides</h4>
                     <div class="space-y-2">
-                        <a href="{{ route('structures.create', ['parent_id' => $structure->id]) }}" class="block w-full bg-green-600 hover:bg-green-700 text-white text-center py-3 px-4 rounded-xl font-semibold transition-all">
+                        <a href="{{ route('admin.structures.create', ['parent_id' => $structure->id]) }}" class="block w-full bg-green-600 hover:bg-green-700 text-white text-center py-3 px-4 rounded-xl font-semibold transition-all">
                             + Ajouter enfant
                         </a>
-                        <a href="{{ route('structures.edit', $structure) }}" class="block w-full bg-yellow-600 hover:bg-yellow-700 text-white text-center py-3 px-4 rounded-xl font-semibold transition-all">
+                        <a href="{{ route('admin.structures.edit', $structure) }}" class="block w-full bg-yellow-600 hover:bg-yellow-700 text-white text-center py-3 px-4 rounded-xl font-semibold transition-all">
                             Modifier
                         </a>
                     </div>

@@ -5,12 +5,13 @@ namespace App\Models;
 use App\Traits\HasAuditLogs;
 use App\Traits\HasStatusHistory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Project extends Model
 {
-    use SoftDeletes, HasAuditLogs, HasStatusHistory;
+    use HasFactory, SoftDeletes, HasAuditLogs, HasStatusHistory;
 
     protected $fillable = [
         'name',
@@ -19,6 +20,11 @@ class Project extends Model
         'start_date',
         'end_date',
         'status'
+    ];
+
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     // responsable
@@ -39,7 +45,13 @@ class Project extends Model
         return $this->hasManyThrough(Task::class, Milestone::class);
     }
 
-
+    // membres assignes au projet
+    public function members()
+    {
+        return $this->belongsToMany(User::class, 'project_user')
+            ->withPivot('role_in_project', 'assigned_at')
+            ->withTimestamps();
+    }
 
     public function attachments()
     {
@@ -80,7 +92,10 @@ class Project extends Model
             });
         }
 
-        return self::query()->whereRaw('0 = 1'); // sécurité
+        // Membres: voir les projets auxquels ils appartiennent
+        return self::whereHas('members', function ($q) use ($user) {
+            $q->where('users.id', $user->id);
+        });
     }
 
     public static function getStructureTreeIds($structureId)
@@ -98,7 +113,7 @@ class Project extends Model
 
     public function closeProject(): void
     {
-        if ($this->status === 'closed') {
+        if ($this->status === 'completed') {
             throw new \Exception('Projet déjà clôturé.');
         }
 
@@ -107,7 +122,7 @@ class Project extends Model
             throw new \Exception("Impossible de clôturer : {$unvalidatedCount} tâches non validées.");
         }
 
-        $this->status = 'closed';
+        $this->status = 'completed';
         $this->save();
 
         // Notify chef de projet (self user)

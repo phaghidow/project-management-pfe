@@ -5,29 +5,40 @@
             <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
             <p class="text-sm text-slate-700">Gestion globale avec filtres rôle / période</p>
         </div>
-
+        <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            <a href="{{ route('projects.create') }}" class="btn-primary text-center">
+                + Nouveau projet
+            </a>
+            <a href="{{ route('gantt') }}" class="btn-secondary text-center">
+                🎯 Gantt
+            </a>
+        </div>
         {{-- Filters --}}
-        <form id="dashboard-filters" method="GET" action="{{ route('admin.dashboard') }}" class="flex flex-col sm:flex-row gap-3 bg-white p-4 rounded-xl shadow-sm border">
-            <div class="flex items-center gap-2">
+        <form id="dashboard-filters" method="GET" action="{{ route('admin.dashboard') }}" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-white p-4 rounded-xl shadow-sm border items-end w-full lg:w-auto">
+            <div class="flex flex-col gap-2 min-w-0">
                 <label class="text-sm font-medium text-gray-700">Rôle:</label>
-                <select name="role" class="border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500">
+                <select name="role" class="w-full border-gray-300 rounded-md px-3 h-10 text-sm focus:ring-2 focus:ring-blue-500">
                     <option value="all" {{ ($roleFilter ?? 'all') === 'all' ? 'selected' : '' }}>Tous</option>
                     <option value="admin" {{ ($roleFilter ?? '') === 'admin' ? 'selected' : '' }}>Admin</option>
-                    <option value="chef_dept" {{ ($roleFilter ?? '') === 'chef_dept' ? 'selected' : '' }}>Chef Dept</option>
                     <option value="chef_departement" {{ ($roleFilter ?? '') === 'chef_departement' ? 'selected' : '' }}>Chef Département</option>
                     <option value="chef_projet" {{ ($roleFilter ?? '') === 'chef_projet' ? 'selected' : '' }}>Chef Projet</option>
                     <option value="membre" {{ ($roleFilter ?? '') === 'membre' ? 'selected' : '' }}>Membre</option>
                 </select>
             </div>
-            <div class="flex items-center gap-2">
+
+            <div class="flex flex-col gap-2 min-w-0">
                 <label class="text-sm font-medium text-gray-700">Du</label>
-                <input type="date" name="start_date" value="{{ $startDate ?? '' }}" class="border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500">
+                <input type="date" name="start_date" value="{{ $startDate ?? '' }}" class="w-full border-gray-300 rounded-md px-3 h-10 text-sm focus:ring-2 focus:ring-blue-500">
             </div>
-            <div class="flex items-center gap-2">
+
+            <div class="flex flex-col gap-2 min-w-0">
                 <label class="text-sm font-medium text-gray-700">Au</label>
-                <input type="date" name="end_date" value="{{ $endDate ?? '' }}" class="border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500">
+                <input type="date" name="end_date" value="{{ $endDate ?? '' }}" class="w-full border-gray-300 rounded-md px-3 h-10 text-sm focus:ring-2 focus:ring-blue-500">
             </div>
-            <button type="submit" class="bg-blue-600 text-white px-4 py-1 rounded-md text-sm hover:bg-blue-700 transition">Filtrer</button>
+
+            <div class="md:justify-self-end">
+                <button type="submit" class="btn-primary btn-sm w-full md:w-auto">Filtrer</button>
+            </div>
         </form>
     </div>
 
@@ -98,64 +109,65 @@
         </div>
     </div>
 
-    {{-- Quick Actions + Notifications --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div class="lg:col-span-2">
-            <div class="bg-white shadow rounded-xl p-6">
-                <h3 class="text-lg font-semibold mb-4">Actions rapides</h3>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    <a href="{{ route('admin.structures.index') }}" class="block p-4 bg-blue-50 border-2 border-dashed border-blue-300 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-all text-center">
-                        <div class="text-2xl mb-2">🏢</div>
-                        <div class="font-medium text-blue-900">Gérer structures</div>
-                    </a>
-                    <a href="{{ route('admin.users.index') }}" class="block p-4 bg-green-50 border-2 border-dashed border-green-300 rounded-xl hover:border-green-400 hover:bg-green-50 transition-all text-center">
-                        <div class="text-2xl mb-2">👥</div>
-                        <div class="font-medium text-green-900">Utilisateurs</div>
-                    </a>
-                    <a href="{{ route('projects.index') }}" class="block p-4 bg-purple-50 border-2 border-dashed border-purple-300 rounded-xl hover:border-purple-400 hover:bg-purple-50 transition-all text-center">
-                        <div class="text-2xl mb-2">📊</div>
-                        <div class="font-medium text-purple-900">Projets</div>
-                    </a>
-                    <a href="{{ route('gantt') }}" class="block p-4 bg-indigo-50 border-2 border-dashed border-indigo-300 rounded-xl hover:border-indigo-400 hover:bg-indigo-50 transition-all text-center">
-                        <div class="text-2xl mb-2">📈</div>
-                        <div class="font-medium text-indigo-900">Gantt</div>
-                    </a>
-                </div>
+    {{-- Quick Actions --}}
+    <div class="mb-8">
+        <div class="bg-white shadow rounded-xl p-6">
+            <h3 class="text-lg font-semibold mb-4">Actions rapides</h3>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <a href="{{ route('admin.structures.index') }}" class="block p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 hover:shadow-sm transition-all text-center">
+                    <div class="text-2xl mb-2 text-blue-600">🏢</div>
+                    <div class="font-medium text-slate-900">Gérer structures</div>
+                </a>
+                <a href="{{ route('admin.users.index') }}" class="block p-4 bg-white border border-slate-200 rounded-xl hover:border-green-300 hover:bg-green-50 hover:shadow-sm transition-all text-center">
+                    <div class="text-2xl mb-2 text-green-600">👥</div>
+                    <div class="font-medium text-green-900">Utilisateurs</div>
+                </a>
+                <a href="{{ route('projects.index') }}" class="block p-4 bg-white border border-slate-200 rounded-xl hover:border-purple-300 hover:bg-purple-50 hover:shadow-sm transition-all text-center">
+                    <div class="text-2xl mb-2 text-purple-600">📊</div>
+                    <div class="font-medium text-purple-900">Projets</div>
+                </a>
+                <a href="{{ route('calendar.index') }}" class="block p-4 bg-white border border-slate-200 rounded-xl hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-sm transition-all text-center">
+                    <div class="text-2xl mb-2 text-indigo-600">📅</div>
+                    <div class="font-medium text-indigo-900">Calendrier</div>
+                </a>
             </div>
         </div>
+    </div>
 
-        <div>
-            <div class="bg-white shadow rounded-xl p-6">
-                <h3 class="text-lg font-semibold mb-4">Notifications récentes</h3>
-                <div id="admin-notifications" class="space-y-3 max-h-64 overflow-y-auto">
-                    @forelse($recentNotifications as $notification)
-                        <div class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
-                            <div class="flex items-start space-x-3">
-                                <div class="flex-shrink-0">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        {{ ucfirst($notification->type ?? 'info') }}
-                                    </span>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-medium text-gray-900">{{ $notification->data['message'] ?? $notification->message ?? 'Nouvelle notification' }}</p>
-                                    <p class="text-xs text-slate-700 mt-0.5">
-                                        Par {{ $notification->user?->name ?? 'Système' }} •
-                                        <span title="{{ $notification->created_at }}">{{ $notification->created_at->diffForHumans() }}</span>
-                                    </p>
-                                </div>
+    {{-- Notifications récentes --}}
+    <div class="mb-8">
+        <div class="bg-white shadow rounded-xl p-6">
+            <h3 class="text-lg font-semibold mb-4">Notifications récentes</h3>
+            <div id="admin-notifications" class="space-y-3 max-h-64 overflow-y-auto">
+                @forelse($recentNotifications as $notification)
+                    <div class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition group">
+                        <div class="flex items-start space-x-3">
+                            <div class="flex-shrink-0">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    {{ ucfirst($notification->type ?? 'info') }}
+                                </span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900">{{ $notification->data['message'] ?? $notification->message ?? 'Nouvelle notification' }}</p>
+                                <p class="text-xs text-slate-700 mt-0.5">
+                                    Par {{ $notification->user?->name ?? 'Système' }} •
+                                    <span title="{{ $notification->created_at }}">{{ $notification->created_at->diffForHumans() }}</span>
+                                </p>
                             </div>
                         </div>
-                    @empty
-                        <div class="text-center py-8 text-slate-700 text-sm">
-                            Aucune notification récente
-                        </div>
-                    @endforelse
-                </div>
+                    </div>
+                @empty
+                    <div class="text-center py-8 text-slate-700 text-sm">
+                        Aucune notification récente
+                    </div>
+                @endforelse
             </div>
         </div>
     </div>
 
     {{-- Chart : Tâches par statut --}}
+    <!-- Notification preferences removed -->
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div class="bg-white shadow-xl rounded-2xl p-8">
             <h3 class="text-xl font-bold mb-6">Tâches par statut (filtré)</h3>
@@ -165,6 +177,7 @@
         </div>
         <div class="bg-white shadow-xl rounded-2xl p-8">
             <h3 class="text-xl font-bold mb-6">Résumé des métriques</h3>
+
             <div class="space-y-4">
                 <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
                     <span class="text-slate-700">Projets totaux</span>
@@ -185,6 +198,10 @@
             </div>
         </div>
     </div>
+
+    @include('partials.recent-attachments', ['attachments' => $recentAttachments ?? collect(), 'title' => 'Pièces jointes récentes'])
+
+    @include('partials.recent-comments', ['comments' => $recentComments ?? collect(), 'title' => 'Commentaires récents'])
 </div>
 
 @push('scripts')
@@ -196,10 +213,10 @@ document.addEventListener('DOMContentLoaded', function() {
         new Chart(ctx2, {
             type: 'doughnut',
             data: {
-                labels: ['Pending', 'In Progress', 'Validé'],
+                labels: ['En cours', 'Validé'],
                 datasets: [{
-                    data: [{{ $tasksByStatus['pending'] ?? 0 }}, {{ $tasksByStatus['in_progress'] ?? 0 }}, {{ $tasksByStatus['validated'] ?? 0 }}],
-                    backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
+                    data: [{{ $tasksByStatus['in_progress'] ?? 0 }}, {{ $tasksByStatus['validated'] ?? 0 }}],
+                    backgroundColor: ['#f59e0b', '#10b981'],
                     borderWidth: 0
                 }]
             },

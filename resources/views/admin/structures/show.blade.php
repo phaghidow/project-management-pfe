@@ -10,10 +10,10 @@
             <p class="text-gray-600 mt-2">{{ $structure->hierarchy_path }} • {{ ucfirst($structure->type) }} • Niv. {{ $structure->level }}</p>
         </div>
         <div class="flex gap-3">
-            <a href="{{ route('admin.structures.edit', $structure) }}" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg shadow hover:bg-blue-700">
+            <a href="{{ route('admin.structures.edit', $structure) }}" class="inline-flex items-center justify-center bg-primary-500 text-white px-6 py-2.5 rounded-lg shadow hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 transition !text-white">
                 Modifier
             </a>
-            <a href="{{ route('admin.structures.index') }}" class="bg-gray-600 text-white px-6 py-2.5 rounded-lg shadow hover:bg-gray-700">
+            <a href="{{ route('admin.structures.index') }}" class="inline-flex items-center justify-center bg-gray-50 text-gray-700 px-6 py-2.5 rounded-lg shadow hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition">
                 Liste
             </a>
         </div>
@@ -31,7 +31,7 @@
                     </div>
                     <div>
                         <label class="text-sm font-medium text-gray-700 mb-1 block">Type</label>
-                        <span class="px-4 py-2 bg-indigo-100 text-indigo-800 rounded-full text-sm font-semibold">
+                        <span class="px-4 py-2 bg-primary-50 text-primary-700 rounded-full text-sm font-semibold">
                             {{ ucfirst($structure->type) }}
                         </span>
                     </div>
@@ -71,7 +71,7 @@
                                 <div class="font-semibold text-gray-900">{{ $child->name }}</div>
                                 <div class="text-xs text-gray-500">{{ ucfirst($child->type) }}</div>
                             </div>
-                            <a href="{{ route('admin.structures.show', $child) }}" class="text-indigo-600 hover:text-indigo-900 text-sm">Voir</a>
+                            <a href="{{ route('admin.structures.show', $child) }}" class="text-primary-600 hover:text-primary-700 text-sm">Voir</a>
                         </div>
                     @empty
                         <div class="text-center py-8 text-gray-500">
@@ -80,7 +80,7 @@
                     @endforelse
                 </div>
                 @if($structure->children->isEmpty())
-                    <a href="{{ route('admin.structures.create') }}?parent_id={{ $structure->id }}" class="mt-4 block w-full bg-blue-600 text-white text-center py-3 rounded-lg hover:bg-blue-700 transition">
+                    <a href="{{ route('admin.structures.create') }}?parent_id={{ $structure->id }}" class="mt-4 inline-flex items-center justify-center w-full bg-primary-500 text-white text-center py-3 rounded-lg hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 transition !text-white">
                         + Ajouter enfant
                     </a>
                 @endif

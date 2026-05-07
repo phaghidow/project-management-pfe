@@ -79,7 +79,7 @@
         </div>
 
         <div class="responsive-form-actions">
-            <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <button type="submit" class="bg-[#2E3192] text-white px-6 py-2 rounded-md hover:bg-[#1E216D] focus:outline-none focus:ring-2 focus:ring-[#2E3192] font-semibold transition-colors">
                 Créer la tâche
             </button>
             <a href="{{ route('tasks.index') }}" class="border border-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-50">

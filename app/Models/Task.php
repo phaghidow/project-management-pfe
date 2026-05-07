@@ -5,12 +5,13 @@ namespace App\Models;
 use App\Traits\HasAuditLogs;
 use App\Traits\HasStatusHistory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Task extends Model
 {
-    use SoftDeletes, HasAuditLogs, HasStatusHistory;
+    use HasFactory, SoftDeletes, HasAuditLogs, HasStatusHistory;
 
     protected $fillable = [
         'name',
@@ -98,24 +99,6 @@ class Task extends Model
         }
     }
 
-    public function canStart()
-    {
-        // si dépendances non validées → bloqué
-        return $this->dependencies()
-            ->where('status', '!=', 'validated')
-            ->count() === 0;
-    }    
-
-    public function start()
-    {
-        if (!$this->canStart()) {
-            throw new \Exception("Impossible de démarrer : dépendances non terminées.");
-        }
-
-        $this->status = 'in_progress';
-        $this->save();
-    }
-
     public function validateTask($userId)
     {
         if ($this->status === 'validated') {
@@ -135,18 +118,7 @@ class Task extends Model
         $this->save();
 
         $this->updateProjectProgress();
-
-        // Notification de tous les intervenants de la tâche
-        foreach ($this->users as $user) {
-\App\Services\NotificationService::send(
-                $user->id,
-                "Tâche validée",
-                "La tâche '{$this->name}' a été validée.",
-                'task_validated',
-                'task',
-                $this->id
-            );
-        }
+        // Note: Notification is now sent via TaskStatusChanged event listener
     }
 
     public function updateProjectProgress()

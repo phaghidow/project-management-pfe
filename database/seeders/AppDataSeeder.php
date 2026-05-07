@@ -325,7 +325,7 @@ class AppDataSeeder extends Seeder
             'start_date' => now()->addDays(4)->toDateString(),
             'end_date' => now()->addDays(10)->toDateString(),
             'due_date' => now()->addDays(10)->toDateString(),
-            'status' => 'pending',
+            'status' => 'in_progress',
             'validated_at' => null,
             'created_at' => $now,
             'updated_at' => $now,

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 
 class Structure extends Model
 {
@@ -72,6 +73,14 @@ use SoftDeletes, HasFactory, HasAuditLogs, HasStatusHistory;
             ->with('children'); // Eager loading récursif
     }
 
+    /**
+     * Utilisateurs rattaches a cette structure.
+     */
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class, 'structure_id');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | TREE METHODS
@@ -86,6 +95,14 @@ use SoftDeletes, HasFactory, HasAuditLogs, HasStatusHistory;
         return self::with('children')
             ->whereNull('parent_id')
             ->get();
+    }
+
+    /**
+     * Alias de compatibilite pour les anciens appels du controleur.
+     */
+    public static function getHierarchyTree()
+    {
+        return self::tree();
     }
 
     /*
@@ -118,5 +135,75 @@ use SoftDeletes, HasFactory, HasAuditLogs, HasStatusHistory;
         return collect($this->getPathArray())
             ->pluck('name')
             ->implode(' > ');
+    }
+
+    /**
+     * Transforme la structure en tableau hiérarchique pour l'API
+     * Format: id, nom, parent_id, enfants[]
+     */
+    public function toTreeArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'nom' => $this->name,
+            'parent_id' => $this->parent_id,
+            'users' => $this->users->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'function' => $user->function,
+                    'role' => $user->role,
+                ];
+            })->toArray(),
+            'enfants' => $this->children->map(function ($child) {
+                return $child->toTreeArray();
+            })->toArray(),
+        ];
+    }
+
+    /**
+     * Verifie si la structure courante est descendante de la structure fournie.
+     */
+    public function isDescendantOf($structure): bool
+    {
+        if (!$structure) {
+            return false;
+        }
+
+        $targetId = $structure instanceof self
+            ? (int) $structure->id
+            : (is_numeric($structure) ? (int) $structure : null);
+
+        if (!$targetId) {
+            return false;
+        }
+
+        $current = $this->parent;
+
+        while ($current) {
+            if ((int) $current->id === $targetId) {
+                return true;
+            }
+
+            $current = $current->parent;
+        }
+
+        return false;
+    }
+
+    /**
+     * Retourne toutes les sous-structures de maniere recursive.
+     */
+    public function getDescendantsAttribute(): Collection
+    {
+        $descendants = collect();
+
+        foreach ($this->children as $child) {
+            $descendants->push($child);
+            $descendants = $descendants->merge($child->descendants);
+        }
+
+        return $descendants;
     }
 }

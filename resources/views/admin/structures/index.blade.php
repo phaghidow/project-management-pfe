@@ -9,7 +9,7 @@
             <h1 class="text-3xl font-bold text-gray-900">Gestion des Structures</h1>
             <p class="text-gray-600 mt-1">{{ $structures->total() }} structures</p>
         </div>
-        <a href="{{ route('admin.structures.create') }}" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg shadow hover:bg-blue-700 transition">
+        <a href="{{ route('admin.structures.create') }}" class="inline-flex items-center justify-center bg-primary-500 text-white px-6 py-2.5 rounded-lg shadow hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 transition !text-white">
             + Nouvelle structure
         </a>
     </div>
@@ -40,9 +40,9 @@
                         <option value="{{ $i }}" {{ request('level') == $i ? 'selected' : '' }} >Niv. {{ $i }}</option>
                     @endfor
                 </select>
-                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Filtrer</button>
+                <button type="submit" class="inline-flex items-center justify-center bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-600 focus:bg-primary-600 active:bg-primary-700 transition !text-white">Filtrer</button>
                 @if(request()->hasAny(['search', 'type', 'level']))
-                    <a href="{{ route('admin.structures.index') }}" class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600">Effacer</a>
+                    <a href="{{ route('admin.structures.index') }}" class="inline-flex items-center justify-center bg-gray-50 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition">Effacer</a>
                 @endif
             </div>
         </div>

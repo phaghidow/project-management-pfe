@@ -11,12 +11,11 @@
             </p>
         </div>
         <div class="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
-            <a href="{{ route('projects.create') }}" class="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-medium shadow-lg transition-all text-center">
+            <a href="{{ route('projects.create') }}" class="btn-primary">
                 + Nouveau projet
             </a>
-            <a href="/notifications" class="bg-at-orange-500/10 hover:bg-at-orange-500/20 text-at-orange-500 px-6 py-3 rounded-xl font-medium shadow-lg transition-all flex items-center justify-center border border-at-orange-500/30">
-                🔔 Notifications
-                <span id="dash-notif-badge" class="ml-2 bg-at-red-500 text-white text-xs px-2 py-1 rounded-full font-bold">0</span>
+            <a href="{{ route('gantt') }}" class="btn-primary">
+                🎯 Gantt
             </a>
         </div>
     </div>
@@ -25,9 +24,9 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div class="bg-white p-6 shadow-lg rounded-2xl hover:shadow-2xl transition-all border border-gray-100">
             <div class="flex items-center">
-                <div class="p-3 bg-linear-to-r from-primary-500 to-primary-500/80 rounded-xl shadow-lg">
+                <div class="p-3 rounded-xl shadow-lg" style="background: linear-gradient(135deg, #2E3192 0%, #1E216D 100%);">
                     <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19.5V4.5A1.5 1.5 0 015.5 3h13A1.5 1.5 0 0120 4.5v15a.5.5 0 01-.5.5H4.5a.5.5 0 01-.5-.5zM8 7h8M8 11h8M8 15h5"></path>
                     </svg>
                 </div>
                 <div class="ml-5">
@@ -55,7 +54,7 @@
 
         <div class="bg-white p-6 shadow-lg rounded-2xl hover:shadow-2xl transition-all border border-gray-100">
             <div class="flex items-center">
-                <div class="p-3 bg-linear-to-r from-secondary-500 to-secondary-500/80 rounded-xl shadow-lg">
+                <div class="p-3 bg-linear-to-r from-emerald-500 to-emerald-600 rounded-xl shadow-lg">
                     <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
                     </svg>
@@ -136,7 +135,7 @@
                                     <div class="w-16 bg-gray-200 rounded-full h-2">
                                         <div class="bg-primary-500 h-2 rounded-full" style="width: {{ $project->progress ?? 0 }}%"></div>
                                     </div>
-                                    <span class="text-xs font-medium">{{ $project->progress ?? 0 }}%</span>
+                                    <span class="text-xs font-medium">{{ number_format($project->progress ?? 0, 2) }}%</span>
                                 </div>
                             </td>
                             <td class="px-4 py-3">
@@ -156,7 +155,7 @@
                         <tr>
                             <td colspan="6" class="px-4 py-12 text-center text-slate-700">
                                 Aucun projet dans votre département.
-                                <a href="{{ route('projects.create') }}" class="font-semibold text-primary-500 hover:text-primary-600">Créer le premier !</a>
+                                <a href="{{ route('projects.create') }}" class="font-semibold text-[#2E3192] hover:text-[#1E216D]">Créer le premier !</a>
                             </td>
                         </tr>
                         @endforelse
@@ -199,11 +198,14 @@
     </div>
 
     {{-- Tasks + Milestones --}}
+    <!-- Notification preferences removed -->
+
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {{-- Recent Tasks --}}
         <div class="bg-white shadow-xl rounded-2xl p-6">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold">Tâches du département</h2>
+
                 <a href="{{ route('tasks.index') }}" class="text-primary-500 hover:text-primary-600 font-medium">Voir tout →</a>
             </div>
             <div class="space-y-3 max-h-96 overflow-y-auto pr-1">
@@ -262,6 +264,12 @@
             </div>
         </div>
     </div>
+
+    <div class="mt-8">
+        @include('partials.recent-attachments', ['attachments' => $recentAttachments ?? collect(), 'title' => 'Fichiers du département'])
+
+        @include('partials.recent-comments', ['comments' => $recentComments ?? collect(), 'title' => 'Commentaires du département'])
+    </div>
 </div>
 
 @push('scripts')
@@ -282,14 +290,13 @@ document.addEventListener('DOMContentLoaded', function() {
         new Chart(statusCtx, {
             type: 'doughnut',
             data: {
-                labels: ['À faire', 'En cours', 'Validées'],
+                labels: ['En cours', 'Validées'],
                 datasets: [{
                     data: [
                         {{ $stats['tasks_pending'] }},
-                        {{ $tasks->whereIn('status', ['started', 'in_progress'])->count() }},
                         {{ $stats['tasks_validated'] }}
                     ],
-                    backgroundColor: ['#ef4444', '#f37021', '#397B44'],
+                    backgroundColor: ['#f37021', '#397B44'],
                     borderWidth: 0,
                     cutout: '60%'
                 }]
@@ -301,7 +308,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Progress chart
     const progressCtx = document.getElementById('progressChart')?.getContext('2d');
     if (progressCtx) {
-        const projectsProgress = @json($projects->pluck('progress', 'name')->filter());
+        const projectsProgressRaw = @json($projects->pluck('progress', 'name')->filter()->toArray());
+        const projectsProgress = (projectsProgressRaw && typeof projectsProgressRaw === 'object' && !Array.isArray(projectsProgressRaw))
+            ? projectsProgressRaw
+            : {};
         new Chart(progressCtx, {
             type: 'bar',
             data: {

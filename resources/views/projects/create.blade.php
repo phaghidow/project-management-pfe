@@ -20,11 +20,11 @@
                 </div>
 
                 <div>
-                    <x-input-label for="user_id" :value="'Responsable'" />
+                    <x-input-label for="user_id" :value="'Responsable (Chef de Projet)'" />
                     <select name="user_id" id="user_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
-                        <option value="">Sélectionner un utilisateur</option>
-                        @foreach(\App\Models\User::where('active', true)->get() as $user)
-                            <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                        <option value="">Sélectionner un chef de projet</option>
+                        @foreach($availableProjectManagers as $manager)
+                            <option value="{{ $manager->id }}">{{ $manager->name }} ({{ $manager->email }})</option>
                         @endforeach
                     </select>
                     <x-input-error :messages="$errors->get('user_id')" class="mt-2" />
@@ -54,7 +54,7 @@
             <a href="{{ route('projects.index') }}" class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
                 Annuler
             </a>
-            <x-primary-button>
+            <x-primary-button class="bg-[#2E3192] hover:bg-[#1E216D] focus:bg-[#1E216D] active:bg-[#1E216D] focus:ring-[#2E3192] text-white text-sm normal-case tracking-normal">
                 {{ __('Créer le projet') }}
             </x-primary-button>
         </div>

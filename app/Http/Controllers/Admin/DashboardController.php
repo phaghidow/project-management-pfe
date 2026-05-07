@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Attachment;
+use App\Models\Comment;
 use App\Models\Notification;
 use App\Models\Project;
 use App\Models\Structure;
@@ -25,6 +27,14 @@ class DashboardController extends Controller
         $projectsTotal = Project::count();
         $structuresTotal = Structure::count();
         $notificationsTotal = Notification::unread()->count();
+        $recentAttachments = Attachment::with(['user'])
+            ->latest()
+            ->take(8)
+            ->get();
+        $recentComments = Comment::with(['user', 'task'])
+            ->latest()
+            ->take(8)
+            ->get();
 
         // Fix Task query - no direct user_id, use whereHas for assignees or recent tasks
         $query = Task::whereBetween('created_at', [$startDate, $endDate . ' 23:59:59']);
@@ -36,8 +46,7 @@ class DashboardController extends Controller
         }
 
         $tasksByStatus = [
-            'pending' => $query->clone()->where('status', 'pending')->count(),
-            'in_progress' => $query->clone()->whereIn('status', ['started', 'in_progress'])->count(),
+            'in_progress' => $query->clone()->where('status', 'in_progress')->count(),
             'validated' => $query->clone()->where('status', 'validated')->count(),
         ];
 
@@ -66,8 +75,11 @@ class DashboardController extends Controller
             'roleFilter',
             'startDate',
             'endDate',
-            'recentNotifications'
+            'recentNotifications',
+            'recentAttachments',
+            'recentComments'
         ));
     }
+
 }
 

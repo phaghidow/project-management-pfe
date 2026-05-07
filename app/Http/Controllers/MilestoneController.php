@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\Milestone\MilestoneCreated;
 use App\Http\Controllers\Controller;
 use App\Models\Milestone;
 use App\Models\Project;
@@ -36,14 +37,8 @@ class MilestoneController extends Controller
 
         $milestone = Milestone::create($request->all());
 
-        // Notify project owner
-        $project = $milestone->project;
-        \App\Services\NotificationService::send(
-            $project->user_id,
-            "Nouveau jalon créé",
-            "Un nouveau jalon '{$milestone->name}' a été ajouté à votre projet '{$project->name}'.",
-            "milestone_created"
-        );
+        // Dispatch event to notify project members and stakeholders
+        MilestoneCreated::dispatch($milestone, auth()->user());
 
         return redirect()->route('milestones.index')
             ->with('success', 'Jalon créé avec succès');

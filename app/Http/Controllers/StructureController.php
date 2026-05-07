@@ -8,12 +8,6 @@ use Illuminate\Support\Facades\DB;
 
 class StructureController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->middleware('role:admin'); // Seul l'admin peut gérer les structures
-    }
-
     public function index()
     {
         $structures = Structure::with('parent')->orderBy('level')->get();
@@ -47,7 +41,7 @@ class StructureController extends Controller
 
         Structure::create($validated);
 
-        return redirect()->route('structures.index')
+        return redirect()->route('admin.structures.index')
             ->with('success', 'Structure créée avec succès.');
     }
 
@@ -76,7 +70,7 @@ class StructureController extends Controller
 
         $structure->update($validated);
 
-        return redirect()->route('structures.index')
+        return redirect()->route('admin.structures.index')
             ->with('success', 'Structure mise à jour avec succès.');
     }
 
@@ -88,7 +82,7 @@ class StructureController extends Controller
         }
 
         $structure->delete();
-        return redirect()->route('structures.index')
+        return redirect()->route('admin.structures.index')
             ->with('success', 'Structure supprimée avec succès.');
     }
 
@@ -115,12 +109,13 @@ class StructureController extends Controller
         ]);
 
         if ($validated['parent_id']) {
-            $isDescendant = Structure::where('id', $validated['structure_id'])
-                ->whereHas('ancestors', function ($q) use ($validated) {
-                    $q->where('id', $validated['parent_id']);
-                })->exists();
+            $structure = Structure::findOrFail($validated['structure_id']);
+            $parent = Structure::find($validated['parent_id']);
 
-            if ($isDescendant) {
+            $createsCycle = $parent
+                && ((int) $parent->id === (int) $structure->id || $parent->isDescendantOf($structure));
+
+            if ($createsCycle) {
                 return response()->json(['valid' => false, 'error' => 'Parent crée un cycle hiérarchique'], 422);
             }
         }

@@ -1,31 +1,36 @@
 import { createApp } from 'vue';
 import MyTasks from './components/MyTasks.vue';
 
-document.addEventListener('DOMContentLoaded', function() {
-  console.log('%c[MyTasks] DOMContentLoaded fired', 'color: blue; font-weight: bold');
+window.addEventListener('load', function() {
+  console.log('%c[MyTasks] LOAD EVENT FIRED', 'color: blue; font-weight: bold');
   const appEl = document.getElementById('my-tasks-app');
+  console.log('%c[MyTasks] appEl found:', 'color: green', !!appEl, appEl);
+  
   if (!appEl) {
-    console.error('%c[MyTasks] ERROR: Element #my-tasks-app not found', 'color: red; font-weight: bold');
+    console.error('%c[MyTasks] ERROR: Element #my-tasks-app NOT FOUND in DOM', 'color: red; font-weight: bold');
+    console.log('%c[MyTasks] DOM content:', 'color: orange', document.body.innerHTML.substring(0, 500));
     return;
   }
-  console.log('%c[MyTasks] Found app element', 'color: green');
 
-  const apiUrl = appEl.dataset.apiUrl;
-  console.log('%c[MyTasks] apiUrl:', 'color: green', apiUrl);
+  const apiUrl = appEl.dataset?.apiUrl;
+  const userRole = appEl.dataset?.userRole;
+  console.log('%c[MyTasks] API URL from data attribute:', 'color: cyan', apiUrl);
+  console.log('%c[MyTasks] User role from data attribute:', 'color: cyan', userRole);
 
   if (!apiUrl) {
-    console.error('%c[MyTasks] ERROR: apiUrl not found in data attribute', 'color: red; font-weight: bold');
+    console.error('%c[MyTasks] ERROR: apiUrl missing or empty', 'color: red; font-weight: bold');
+    console.log('%c[MyTasks] Dataset:', 'color: orange', appEl.dataset);
     return;
   }
 
-  const app = createApp({
-    template: '<MyTasks :api-url="apiUrl" />',
-    components: { MyTasks },
-    data() {
-      return { apiUrl };
-    }
-  });
-
-  app.mount(appEl);
-  console.log('%c[MyTasks] Component mounted successfully!', 'color: green; font-weight: bold');
+  try {
+    console.log('%c[MyTasks] About to mount component', 'color: blue');
+    const app = createApp(MyTasks, { apiUrl, userRole });
+    app.mount(appEl);
+    console.log('%c[MyTasks] ✓ COMPONENT MOUNTED SUCCESSFULLY!', 'color: green; font-weight: bold');
+  } catch (error) {
+    console.error('%c[MyTasks] MOUNT ERROR:', 'color: red; font-weight: bold', error);
+  }
 });
+
+console.log('%c[MyTasks] Script loaded, waiting for window load event', 'color: blue');

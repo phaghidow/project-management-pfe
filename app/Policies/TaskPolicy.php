@@ -29,7 +29,8 @@ class TaskPolicy
             return in_array($ownerStructureId, $structureIds, true);
         }
 
-        return $task->users()->where('users.id', $user->id)->exists();
+        // Membres cannot view task details
+        return false;
     }
 
     public function create(User $user): bool
@@ -47,15 +48,6 @@ class TaskPolicy
     }
 
     public function delete(User $user, Task $task): bool
-    {
-        if ($user->isAdmin()) {
-            return true;
-        }
-
-        return $task->milestone?->project?->user_id === $user->id;
-    }
-
-    public function start(User $user, Task $task): bool
     {
         if ($user->isAdmin()) {
             return true;

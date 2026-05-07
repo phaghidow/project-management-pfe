@@ -5,12 +5,12 @@
             <h1 class="text-3xl font-bold text-gray-900">{{ $structure->name }}</h1>
             <p class="text-lg text-gray-600 mt-2">Modifier la structure</p>
         </div>
-        <a href="{{ route('structures.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition-all">
+        <a href="{{ route('admin.structures.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition-all">
             ← Retour
         </a>
     </div>
 
-    <form method="POST" action="{{ route('structures.update', $structure) }}" id="structure-form" class="bg-white shadow-2xl rounded-3xl p-8">
+    <form method="POST" action="{{ route('admin.structures.update', $structure) }}" id="structure-form" class="bg-white shadow-2xl rounded-3xl p-8">
         @csrf @method('PUT')
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
@@ -65,11 +65,11 @@
             <x-input-error :messages="$errors->get('description')" class="mt-2" />
         </div>
 
-        <div class="flex justify-end gap-4 pt-6 border-t border-gray-200">
-            <a href="{{ route('structures.index') }}" class="px-8 py-3 text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 font-semibold transition-all">
+        <div class="flex justify-end gap-4 pt-6 border-t border-[#E2E8F0]">
+            <a href="{{ route('admin.structures.index') }}" class="px-8 py-3 text-[#1A202C] bg-white border border-[#E2E8F0] rounded-xl hover:bg-[#F8F9FC] font-semibold transition-all">
                 Annuler
             </a>
-            <x-primary-button id="submit-btn" class="px-12 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-xl hover:shadow-2xl font-semibold text-lg transition-all">
+            <x-primary-button id="submit-btn" class="px-12 py-3 bg-primary-500 hover:bg-primary-600 shadow-xl hover:shadow-2xl font-semibold text-lg transition-all">
                 Mettre à jour
             </x-primary-button>
         </div>

@@ -15,12 +15,26 @@ class RoleMiddleware
      */
     public function handle($request, Closure $next, ...$roles): Response
     {
+        $accessDeniedMessage = 'Acces refuse : vous n\'avez pas les droits necessaires pour acceder a cette ressource.';
+
         if (!auth()->check()) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Unauthenticated.',
+                ], 401);
+            }
+
             return redirect('/login');
         }
 
         if (!in_array(auth()->user()->role, $roles)) {
-            abort(403);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => $accessDeniedMessage,
+                ], 403);
+            }
+
+            return redirect()->route('dashboard')->with('error', $accessDeniedMessage);
         }
 
         return $next($request);

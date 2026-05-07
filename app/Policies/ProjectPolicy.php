@@ -69,6 +69,20 @@ class ProjectPolicy
             return true;
         }
 
-        return $project->user_id === $user->id && $project->status !== 'closed';
+        if ($project->status === 'completed') {
+            return false;
+        }
+
+        if ($user->isChefProjet()) {
+            return $project->user_id === $user->id;
+        }
+
+        if ($user->isChefDepartement()) {
+            $structureIds = Project::getStructureTreeIds($user->structure_id);
+
+            return in_array($project->user?->structure_id, $structureIds, true);
+        }
+
+        return false;
     }
 }

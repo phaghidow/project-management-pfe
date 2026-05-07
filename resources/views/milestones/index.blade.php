@@ -4,10 +4,10 @@
     <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-4">
         <h1 class="text-xl font-bold">Jalons</h1>
 
-        <a href="{{ route('milestones.create') }}"
-           class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            + Nouveau jalon
-        </a>
+                    <a href="{{ route('milestones.create') }}"
+                            class="btn-primary">
+                        + Nouveau jalon
+                </a>
     </div>
 
     @if (session('success'))
@@ -28,13 +28,18 @@
 
                 <div class="flex flex-wrap gap-2 mb-2">
                     <x-due-date :date="$milestone->due_date" />
-                    <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">
+                    <span class="text-xs px-2 py-1 bg-primary-50 text-primary-700 rounded-full">
                         {{ $milestone->tasks->count() }} tâches
                     </span>
                 </div>
 
                 <p class="text-sm text-gray-600">
-                    Projet: <a href="{{ route('projects.show', $milestone->project) }}" class="font-medium text-blue-600 hover:underline">{{ $milestone->project->name }}</a>
+                    Projet:
+                    @if($milestone->project)
+                        <a href="{{ route('projects.show', $milestone->project) }}" class="font-medium text-primary-600 hover:text-primary-700 hover:underline">{{ $milestone->project->name }}</a>
+                    @else
+                        <span class="text-gray-500 italic">Projet indisponible</span>
+                    @endif
                 </p>
 
 

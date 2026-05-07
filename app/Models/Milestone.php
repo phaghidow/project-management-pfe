@@ -6,12 +6,13 @@ use App\Traits\HasAuditLogs;
 use App\Traits\HasStatusHistory;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Milestone extends Model
 {
-    use SoftDeletes, HasAuditLogs, HasStatusHistory;
+    use HasFactory, SoftDeletes, HasAuditLogs, HasStatusHistory;
 
     protected $fillable = [
         'name',
@@ -31,6 +32,17 @@ class Milestone extends Model
     public function tasks()
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function progressPercentage()
+    {
+        $total = $this->tasks()->count();
+        return $total > 0 ? round(($this->tasks()->where('status', 'validated')->count() / $total) * 100, 1) : 0;
+    }
+
+    public function completedTasks()
+    {
+        return $this->tasks()->where('status', 'validated');
     }
 
     public static function visibleFor(User $user): Builder
@@ -53,7 +65,12 @@ class Milestone extends Model
             });
         }
 
-        return self::query()->whereRaw('0 = 1'); // sécurité
+        // Membres: voir les jalons des projets auxquels ils appartiennent
+        return self::whereHas('project', function ($query) use ($user) {
+            $query->whereHas('members', function ($q) use ($user) {
+                $q->where('users.id', $user->id);
+            });
+        });
     }
 }
 

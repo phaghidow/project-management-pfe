@@ -18,10 +18,17 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasAuditLogs, HasStatusHistory, SoftDeletes;
 
     const ROLE_ADMIN = 'admin';
-    const ROLE_CHEF_DEPT = 'chef_dept';
     const ROLE_CHEF_DEPARTEMENT = 'chef_departement';
+    const ROLE_CHEF_DEPT = self::ROLE_CHEF_DEPARTEMENT;
     const ROLE_CHEF_PROJET = 'chef_projet';
     const ROLE_MEMBRE = 'membre';
+
+    public const ROLES = [
+        self::ROLE_ADMIN,
+        self::ROLE_CHEF_DEPARTEMENT,
+        self::ROLE_CHEF_PROJET,
+        self::ROLE_MEMBRE,
+    ];
 
     const STATUS_ACTIVE = 'active';
     const STATUS_DISABLED = 'disabled';
@@ -29,6 +36,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
+        'function',
         'email',
         'password',
         'username',
@@ -51,6 +59,15 @@ class User extends Authenticatable
         ];
     }
 
+    public function setRoleAttribute($value): void
+    {
+        if ($value === 'chef_dept') {
+            $value = self::ROLE_CHEF_DEPARTEMENT;
+        }
+
+        $this->attributes['role'] = $value;
+    }
+
     public function isAdmin()
     {
         return $this->role === self::ROLE_ADMIN;
@@ -63,7 +80,7 @@ class User extends Authenticatable
 
     public function isChefDepartement()
     {
-        return in_array($this->role, [self::ROLE_CHEF_DEPT, self::ROLE_CHEF_DEPARTEMENT], true);
+        return $this->role === self::ROLE_CHEF_DEPARTEMENT;
     }
 
     public function isMembre()
@@ -80,7 +97,7 @@ class User extends Authenticatable
     {
         return match($this->role) {
             self::ROLE_ADMIN => 'Administrateur',
-            self::ROLE_CHEF_DEPT, self::ROLE_CHEF_DEPARTEMENT => 'Chef de Département',
+            self::ROLE_CHEF_DEPARTEMENT => 'Chef de Département',
             self::ROLE_CHEF_PROJET => 'Chef de Projet',
             self::ROLE_MEMBRE => 'Membre',
             default => ucfirst($this->role),
@@ -109,18 +126,16 @@ class User extends Authenticatable
 
     public function activate(): void
     {
-        $oldStatus = $this->status;
         $this->status = self::STATUS_ACTIVE;
+        $this->pendingStatusChangeReason = 'Activation manuelle';
         $this->save();
-        $this->logStatusChange($oldStatus, self::STATUS_ACTIVE, 'Activation manuelle');
     }
 
     public function deactivate(): void
     {
-        $oldStatus = $this->status;
         $this->status = self::STATUS_DISABLED;
+        $this->pendingStatusChangeReason = 'Désactivation manuelle';
         $this->save();
-        $this->logStatusChange($oldStatus, self::STATUS_DISABLED, 'Désactivation manuelle');
     }
 
     public function tasks()
@@ -131,6 +146,13 @@ class User extends Authenticatable
     public function projects()
     {
         return $this->hasMany(Project::class);
+    }
+
+    public function assignedProjects()
+    {
+        return $this->belongsToMany(Project::class, 'project_user')
+            ->withPivot('role_in_project', 'assigned_at')
+            ->withTimestamps();
     }
 
     public function structure()
@@ -157,4 +179,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Comment::class);
     }
+
+    public function notificationPreferences()
+    {
+        // Notification preferences feature removed — return empty collection to preserve callers
+        return collect();
+    }
 }
+

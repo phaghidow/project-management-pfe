@@ -139,4 +139,10 @@ Chef de département : accès limité à son département. Peut créer, modifier
 
 Chef de projet : accès limité aux projets dont il est responsable. Peut créer, modifier, supprimer les jalons et tâches de ses projets. Peut assigner des tâches, visualiser les membres de son équipe. Peut valider les tâches de ses membres et valider l'intégralité d'un projet si toutes les tâches sont validées. Peut uploader des fichiers et commenter sur ses projets et tâches.
 
+<<<<<<< HEAD
 Membre : accès limité à ses propres tâches. Peut uniquement visualiser et valider ses tâches assignées. Peut commenter et uploader des fichiers uniquement sur ses tâches. Ne peut ni créer, ni modifier, ni supprimer aucun projet, jalon ou tâche. Ne peut pas voir les tâches des autres utilisateurs.
+=======
+Membre : accès limité à ses propres tâches. Peut uniquement visualiser et valider ses tâches assignées. Peut commenter et uploader des fichiers uniquement sur ses tâches. Ne peut ni créer, ni modifier, ni supprimer aucun projet, jalon ou tâche. Ne peut pas voir les tâches des autres utilisateurs.
+
+Fin du cahier des charges
+>>>>>>> 9932dba6070033be48b5c82e509b4bc69b982219

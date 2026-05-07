@@ -11,17 +11,13 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('role:admin');
-        $this->middleware('can:viewAny,App\\Models\\User')->only('index');
-    }
-
     /**
      * Display listing of users with search/filter/pagination.
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', User::class);
+
         $query = User::with('structure')->orderBy('created_at', 'desc');
 
         // Search

@@ -12,14 +12,13 @@
                 'values' => [
                     'draft' => 'Brouillon',
                     'in_progress' => 'En cours',
-                    'completed' => 'Terminé',
-                    'closed' => 'Clôturé',
+                    'completed' => 'Clôturé',
                 ]
             ],
             'user_id' => [
                 'label' => 'Responsable',
                 'type' => 'select',
-                'values' => \App\Models\User::where('active', true)->orderBy('name')->pluck('name', 'id')->toArray()
+                'values' => \App\Models\User::where('status', \App\Models\User::STATUS_ACTIVE)->orderBy('name')->pluck('name', 'id')->toArray()
             ],
             'start_date' => [
                 'label' => 'Date début (à partir du)',
@@ -35,10 +34,10 @@
     <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-4 mt-6">
         <h1 class="text-xl font-bold">Projets</h1>
 
-        <a href="{{ route('projects.create') }}"
-           class="bg-blue-600 text-white px-4 py-2 rounded">
-            + Nouveau projet
-        </a>
+                    <a href="{{ route('projects.create') }}"
+                            class="btn-primary">
+                        + Nouveau projet
+                </a>
     </div>
 
     <div class="grid gap-4" style="min-height: 400px;">

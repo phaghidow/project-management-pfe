@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\Project\MemberAssignedToProject;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
@@ -64,7 +66,13 @@ class ProjectController extends Controller
 
     public function myProjects(Request $request)
     {
-        $query = Project::where('user_id', auth()->id())->with('user');
+        $user = auth()->user();
+
+        if ($user->isMembre()) {
+            $query = $user->assignedProjects()->with('user');
+        } else {
+            $query = Project::where('user_id', $user->id)->with('user');
+        }
 
         $query->when($request->filled('q'), function ($q) use ($request) {
             $search = trim($request->q);
@@ -97,7 +105,8 @@ class ProjectController extends Controller
 
     public function create()
     {
-        return view('projects.create');
+        $availableProjectManagers = $this->getAvailableProjectManagers();
+        return view('projects.create', compact('availableProjectManagers'));
     }    
 
     public function store(Request $request)
@@ -107,12 +116,19 @@ class ProjectController extends Controller
             'description' => 'nullable',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
+            'user_id' => 'required|integer|exists:users,id',
         ]);
+
+        // Ensure user can only assign to authorized project managers
+        $availableManagers = $this->getAvailableProjectManagers();
+        if (!$availableManagers->contains('id', $request->user_id)) {
+            abort(403, 'You cannot assign this project manager.');
+        }
 
         Project::create([
             'name' => $request->name,
             'description' => $request->description,
-            'user_id' => auth()->id(),
+            'user_id' => $request->user_id,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'status' => 'draft',
@@ -131,16 +147,32 @@ $project->load(['milestones.tasks.users', 'tasks.users', 'attachments.user', 'st
     
     public function edit(Project $project)
     {
-        return view('projects.edit', compact('project'));
+        $availableProjectManagers = $this->getAvailableProjectManagers();
+        return view('projects.edit', compact('project', 'availableProjectManagers'));
     }
 
     public function update(Request $request, Project $project)
     {
+        $request->validate([
+            'name' => 'required',
+            'description' => 'nullable',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date',
+            'user_id' => 'required|integer|exists:users,id',
+        ]);
+
+        // Ensure user can only assign to authorized project managers
+        $availableManagers = $this->getAvailableProjectManagers();
+        if (!$availableManagers->contains('id', $request->user_id)) {
+            abort(403, 'You cannot assign this project manager.');
+        }
+
         $project->update([
             'name' => $request->name,
             'description' => $request->description,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
+            'user_id' => $request->user_id,
         ]);
 
         return redirect()->route('projects.index')
@@ -180,6 +212,82 @@ $project->load(['milestones.tasks.users', 'tasks.users', 'attachments.user', 'st
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * Get available project managers for the current user's scope.
+     */
+    private function getAvailableProjectManagers()
+    {
+        $query = User::where('status', User::STATUS_ACTIVE)
+            ->where('role', User::ROLE_CHEF_PROJET);
+
+        // If chef de département, filter to their department and sub-structures
+        if (auth()->user()->isChefDepartement()) {
+            $structureIds = Project::getStructureTreeIds(auth()->user()->structure_id);
+            $query->whereIn('structure_id', $structureIds);
+        }
+
+        return $query->get();
+    }
+
+    /**
+     * Assign members to a project (Chef de Projet only)
+     */
+    public function assignMembers(Request $request, Project $project)
+    {
+        $this->authorize('update', $project);
+
+        $request->validate([
+            'users' => 'required|array',
+            'users.*' => 'exists:users,id',
+        ]);
+
+        // Get currently assigned member IDs before sync
+        $existingMemberIds = $project->members()->pluck('users.id')->toArray();
+
+        $syncData = [];
+        foreach ($request->users as $userId) {
+            $member = User::findOrFail($userId);
+            $syncData[$userId] = [
+                'role_in_project' => $member->function,
+                'assigned_at' => now(),
+            ];
+        }
+
+        $project->members()->syncWithoutDetaching($syncData);
+
+        // Dispatch events for newly assigned members
+        foreach ($request->users as $userId) {
+            if (!in_array($userId, $existingMemberIds)) {
+                $member = User::find($userId);
+                $role = $member->function ?? 'contributor';
+                MemberAssignedToProject::dispatch($project, $member, auth()->user(), $role);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Membres affectés au projet avec succès.');
+    }
+
+    /**
+     * Remove a member from a project
+     */
+    public function removeMember(Project $project, User $user)
+    {
+        $this->authorize('update', $project);
+
+        $project->members()->detach($user->id);
+
+        \App\Services\NotificationService::send(
+            $user->id,
+            'Retrait d\'un projet',
+            "Vous avez été retiré du projet '{$project->name}'.",
+            'project_removed',
+            'project',
+            $project->id
+        );
+
+        return redirect()->back()->with('success', 'Membre retiré du projet.');
     }
 }
 

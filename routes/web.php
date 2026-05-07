@@ -7,13 +7,14 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StructureController;
 use App\Http\Controllers\OrganigrammeController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\MilestoneController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\CalendarEventController;
 use App\Http\Controllers\AttachmentController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\MemberController;
@@ -60,16 +61,38 @@ Route::middleware(['auth', 'active_user', 'verified'])->group(function () {
 
         // 1. tâches visibles pour le rôle (membre inclus via task_user)
         $tasks = \App\Models\Task::visibleFor($user)
-            ->with('milestone.project')
+
+            ->with(['milestone.project', 'attachments.user', 'comments.user'])
             ->get();
 
         // 2. projets visibles (pour membre : dérivés de ses tâches assignées)
         $projects = \App\Models\Project::visibleFor($user)
-            ->with('user')
+            ->with(['user', 'attachments.user'])
             ->get();
 
-        return view('dashboard', compact('projects', 'tasks'));
+        $recentAttachments = $projects->flatMap->attachments
+            ->merge($tasks->flatMap->attachments)
+            ->sortByDesc('created_at')
+            ->take(8)
+            ->values();
+
+        $recentComments = $tasks->flatMap->comments
+            ->sortByDesc('created_at')
+            ->take(8)
+            ->values();
+
+        // 3. Available members for chef de projet to assign
+        $availableMembers = collect();
+        if ($user->isChefProjet()) {
+            $availableMembers = \App\Models\User::where('role', 'membre')
+                ->where('status', \App\Models\User::STATUS_ACTIVE)
+                ->orderBy('name')
+                ->get();
+        }
+
+        return view('dashboard', compact('projects', 'tasks', 'availableMembers', 'recentAttachments', 'recentComments'));
     })->name('dashboard');
+
 
 });
 
@@ -79,16 +102,18 @@ Route::middleware(['auth', 'active_user'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
+    // Notification preferences endpoint removed — preferences are no longer supported
 
     // Organigramme
     Route::get('/organigramme', [OrganigrammeController::class, 'index'])->name('organigramme.index');
-    Route::get('/api/structures', [OrganigrammeController::class, 'getStructures']);
     Route::get('/api/structures/{id}/hierarchy', [OrganigrammeController::class, 'getHierarchy']);
 
     // Projets
     Route::resource('projects', ProjectController::class);
     Route::get('/my-projects', [ProjectController::class, 'myProjects'])->name('projects.my-projects');
     Route::post('/projects/{project}/close', [ProjectController::class, 'closeProject'])->name('projects.close');
+    Route::post('/projects/{project}/assign-members', [ProjectController::class, 'assignMembers'])->name('projects.assign-members');
+    Route::delete('/projects/{project}/members/{user}', [ProjectController::class, 'removeMember'])->name('projects.remove-member');
     Route::post('/projects/{project}/restore', [ProjectController::class, 'restore'])->name('projects.restore');
     Route::delete('/projects/{project}/force-delete', [ProjectController::class, 'forceDelete'])->name('projects.force-delete');
 
@@ -102,11 +127,108 @@ Route::middleware(['auth', 'active_user'])->group(function () {
     // Tâches
     Route::resource('tasks', TaskController::class);
     Route::get('/my-tasks', [TaskController::class, 'myTasks'])->name('tasks.my-tasks');
+    Route::get('/my-tasks/data', function (Request $request) {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized', 'data' => []], 401);
+        }
+        
+        $query = \App\Models\Task::visibleFor($user)->with(['milestone.project', 'users']);
+        
+        if ($request->filled('q')) {
+            $search = trim($request->q);
+            $query->where(function ($inner) use ($search) {
+                $inner->where('name', 'like', "%{$search}%")
+                    ->orWhereHas('milestone.project', function ($projectQuery) use ($search) {
+                        $projectQuery->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+        
+        $status = $request->get('status', 'all');
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+        
+        $sort = $request->get('sort', 'due_date');
+        $dir = $request->get('dir', 'desc');
+        if (in_array($sort, ['name', 'due_date', 'created_at'])) {
+            $query->orderBy($sort, $dir);
+        } else {
+            $query->orderBy('due_date', 'desc');
+        }
+        
+        $tasks = $query->paginate(15);
+
+        $user = auth()->user();
+
+        // Map tasks to arrays and include authorization flags used by the frontend
+        $items = collect($tasks->items())->map(function ($task) use ($user) {
+            return array_merge($task->toArray(), [
+                'can_view' => $user ? $user->can('view', $task) : false,
+            ]);
+        })->values();
+
+        return response()->json([
+            'data' => $items,
+            'current_page' => $tasks->currentPage(),
+            'last_page' => $tasks->lastPage(),
+            'per_page' => $tasks->perPage(),
+            'total' => $tasks->total(),
+            'q' => $request->get('q', ''),
+            'status' => $status,
+            'sort' => $sort,
+            'dir' => $dir,
+        ]);
+    })->name('tasks.my-tasks.data');
     Route::get('/api/my-tasks', [TaskController::class, 'apiMyTasks'])->name('api.my-tasks');
-    Route::post('/tasks/{task}/start', [TaskController::class, 'start'])->name('tasks.start');
     Route::post('/tasks/{task}/validate', [TaskController::class, 'validateTask'])->name('tasks.validate');
     Route::post('/tasks/{task}/dependencies', [TaskController::class, 'addDependency'])->name('tasks.dependencies.add');
     Route::delete('/tasks/{task}/dependencies/{dependency}', [TaskController::class, 'removeDependency'])->name('tasks.dependencies.remove');
+
+    // API: Comments and Attachments for task detail drawer
+    Route::get('/api/tasks/{task}/comments', function (\App\Models\Task $task) {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        // Check if user can view this task
+        if (!$user->can('view', $task)) {
+            // Still allow members to see comments on their assigned tasks
+            if (!$task->users()->where('users.id', $user->id)->exists()) {
+                return response()->json(['error' => 'Forbidden'], 403);
+            }
+        }
+
+        $comments = $task->comments()
+            ->with('user:id,name')
+            ->latest()
+            ->get();
+
+        return response()->json(['data' => $comments]);
+    });
+
+    Route::get('/api/tasks/{task}/attachments', function (\App\Models\Task $task) {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        // Check if user can view this task
+        if (!$user->can('view', $task)) {
+            // Still allow members to see attachments on their assigned tasks
+            if (!$task->users()->where('users.id', $user->id)->exists()) {
+                return response()->json(['error' => 'Forbidden'], 403);
+            }
+        }
+
+        $attachments = $task->attachments()
+            ->latest()
+            ->get(['id', 'name', 'size', 'created_at']);
+
+        return response()->json(['data' => $attachments]);
+    });
 
     // Calendrier
     Route::get('/calendar', [CalendarEventController::class, 'index'])->name('calendar.index');
@@ -118,10 +240,14 @@ Route::middleware(['auth', 'active_user'])->group(function () {
 
     // Pièces jointes
     Route::post('/attachments', [AttachmentController::class, 'store'])->name('attachments.store');
+    Route::patch('/attachments/{attachment}', [AttachmentController::class, 'update'])->name('attachments.update');
     Route::get('/attachments/{attachment}/download', [AttachmentController::class, 'download'])->name('attachments.download');
     Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])->name('attachments.destroy');
 
-    // Gantt
+    // Commentaires
+    Route::post('/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::patch('/comments/{comment}', [CommentController::class, 'update'])->name('comments.update');
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
     Route::get('/gantt', function () {
         $tasks = \App\Models\Task::visibleFor(auth()->user())->with('milestone.project')->get();
         return view('gantt', compact('tasks'));
@@ -134,7 +260,7 @@ Route::middleware(['auth', 'active_user'])->group(function () {
                 "name" => $task->name,
                 "start" => $task->start_date,
                 "end" => $task->end_date,
-                "progress" => $task->status === 'validated' ? 100 : ($task->status === 'started' ? 50 : 0)
+                "progress" => $task->status === 'validated' ? 100 : ($task->status === 'in_progress' ? 50 : 0)
             ];
         });
     });
@@ -143,20 +269,17 @@ Route::middleware(['auth', 'active_user'])->group(function () {
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);
         Route::get('/count', [NotificationController::class, 'count']);
+        Route::post('/read-all', [NotificationController::class, 'readAll']);
         Route::post('/{notification}/read', [NotificationController::class, 'read']);
+        Route::post('/role/{role}', [NotificationController::class, 'sendToRole']);
+        Route::post('/structure/{structureId}', [NotificationController::class, 'sendToStructure']);
     });
-
-    // Espace membre : commentaires sur tâches
-    Route::post('/member/tasks/{task}/comment', [MemberController::class, 'storeComment'])->name('member.tasks.comment');
 
     // Route de test directe pour le dashboard membre
     Route::get('/member/dashboard', [MemberController::class, 'dashboard'])->name('member.dashboard');
 
     // Dashboard Chef de Département
     Route::get('/departement/dashboard', [DepartementDashboardController::class, 'dashboard'])->name('departement.dashboard');
-
-    // Suppression de commentaires
-    Route::delete('/comments/{comment}', [MemberController::class, 'destroyComment'])->name('comments.destroy');
 
 });
 
@@ -178,9 +301,9 @@ Route::middleware(['auth', 'active_user', 'role:admin'])->prefix('admin')->name(
     Route::post('/structures/check-parent', [StructureController::class, 'checkParent']);
 
     // Utilisateurs
-    Route::resource('users', AdminUserController::class);
-    Route::get('users/{user}', [AdminUserController::class, 'show'])->name('users.show');
-    Route::post('users/{user}/toggle', [AdminUserController::class, 'toggleStatus'])->name('users.toggle');
+    Route::resource('users', AdminController::class);
+    Route::get('users/{user}', [AdminController::class, 'show'])->name('users.show');
+    Route::post('users/{user}/toggle', [AdminController::class, 'toggleStatus'])->name('users.toggle');
 
 });
 
