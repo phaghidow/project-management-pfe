@@ -22,3 +22,10 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Temporary diagnostic scripts at the project root
+/test_*.php
+/check_*.php
+/verify_*.php
+/test_*.mjs
+/verify_*.ps1
