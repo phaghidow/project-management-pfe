@@ -30,6 +30,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::middleware(['auth', 'active_user'])->group(function () {
+    Route::get('/dev/organigramme-preview', function () {
+        return view('organigramme-preview');
+    })->name('organigramme.preview');
+});
+
 
 
 /*
@@ -308,4 +314,3 @@ Route::middleware(['auth', 'active_user', 'role:admin'])->prefix('admin')->name(
 });
 
 require __DIR__.'/auth.php';
-

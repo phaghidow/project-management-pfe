@@ -1,6 +1,7 @@
 import './bootstrap';
 import './datepicker';
 import './flash-toast-mount';
+import './organization-chart-mount';
 
 import Alpine from 'alpinejs';
 import collapse from '@alpinejs/collapse';
@@ -153,4 +154,3 @@ if (document.readyState === 'loading') {
 }
 
 Alpine.start();
-

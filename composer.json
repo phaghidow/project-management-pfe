@@ -1,10 +1,10 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "phaghidow/project-management-system",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Application web de gestion de projets.",
     "keywords": ["laravel", "framework"],
-    "license": "MIT",
+    "license": "GPL-3.0-only",
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
