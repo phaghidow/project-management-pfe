@@ -1,4 +1,6 @@
-Cahier des charges – Plateforme web de gestion de projets
+# Project Management System
+
+## Cahier des charges
 1. Objectif général
 Développer une plateforme web permettant la gestion complète du cycle de vie d'un projet, de sa création à sa clôture, en passant par le suivi, la validation et la collaboration. La solution intègre une gestion fine des utilisateurs, des rôles, des tâches, des jalons et des dépendances, tout en assurant traçabilité, notifications et ergonomie.
 
@@ -142,3 +144,7 @@ Chef de projet : accès limité aux projets dont il est responsable. Peut créer
 Membre : accès limité à ses propres tâches. Peut uniquement visualiser et valider ses tâches assignées. Peut commenter et uploader des fichiers uniquement sur ses tâches. Ne peut ni créer, ni modifier, ni supprimer aucun projet, jalon ou tâche. Ne peut pas voir les tâches des autres utilisateurs.
 
 Fin du cahier des charges
+
+## Licence
+
+Ce projet est distribué sous licence GNU General Public License v3.0. Consultez le fichier [LICENSE](LICENSE).
